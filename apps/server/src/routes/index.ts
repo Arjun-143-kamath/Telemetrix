@@ -8,9 +8,12 @@ import { getFastestPitStop } from '../services/openf1.service';
 import { getDriverOfTheDay, getTyreCompounds } from '../services/scraper.service';
 import standingsRoute from './standings';
 
+import calendarRoute from './calendar';
+
 const router = Router();
 
 router.use('/standings', standingsRoute);
+router.use('/calendar', calendarRoute);
 
 // --- Dashboard Aggregator Route ---
 router.get('/dashboard', async (req, res) => {

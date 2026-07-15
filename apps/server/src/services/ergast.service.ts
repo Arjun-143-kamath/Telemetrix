@@ -20,6 +20,18 @@ export const getNextRace = async () => {
   }, 3600 * 6); // Cache for 6 hours
 };
 
+export const getSeasonCalendar = async () => {
+  return withCache('season_calendar', async () => {
+    try {
+      const response = await axios.get(`${JOLPICA_BASE_URL}/current.json`);
+      return response.data.MRData.RaceTable.Races;
+    } catch (error) {
+      console.error('Error fetching season calendar:', error);
+      return [];
+    }
+  }, 3600 * 24); // Cache for 24 hours
+};
+
 
 export const getDriverStandings = async () => {
   return withCache('driver_standings', async () => {

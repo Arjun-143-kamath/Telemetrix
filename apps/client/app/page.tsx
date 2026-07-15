@@ -97,7 +97,7 @@ export default async function Home() {
     <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
       
       {/* FULL SCREEN HERO: Next Race Information */}
-      <section className="relative w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] h-[100vh] min-h-[100vh] -mt-4 md:-mt-8 -ml-4 md:-ml-8 flex items-stretch overflow-hidden pl-8 sm:pl-12 lg:pl-24 pr-0">
+      <section className="relative w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] h-[100vh] min-h-[100vh] -mt-4 md:-mt-8 -ml-4 md:-ml-8 flex items-stretch overflow-hidden pl-8 sm:pl-12 lg:pl-24 pr-8 sm:pr-12 lg:pr-24">
         
         {/* Background ambient glow */}
         <div className="absolute top-1/2 left-1/4 w-[40vw] h-[40vw] bg-primary/5 rounded-full blur-[150px] -translate-y-1/2 pointer-events-none z-0"></div>
