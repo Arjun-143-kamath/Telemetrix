@@ -1,159 +1,55 @@
-# Turborepo starter
+# F1 Race Hub 🏎️
 
-This Turborepo starter is maintained by the Turborepo core team.
+F1 Race Hub is a blazing fast, modern Formula 1 dashboard application built to provide fans with real-time race data, historical circuit statistics, and upcoming race schedules. 
 
-## Using this example
+Designed with a premium, dynamic UI featuring glassmorphism, micro-animations, and striking typography, the dashboard acts as a central hub for all things F1.
 
-Run the following command:
+## 🌟 Features
 
-```sh
-npx create-turbo@latest
-```
+- **Next Race Countdown**: Stay up to date with exactly how many days are left until the next Grand Prix weekend.
+- **Dynamic Track Maps**: View official track layouts perfectly scaled and styled for the upcoming Grand Prix.
+- **Circuit Records**: Automatically calculated historical records for each circuit, including Fastest Lap, Most Wins, and Most Poles by legendary drivers.
+- **Live Conditions & Tyres**: Real-time track temperature and rain risk pulled straight from the sessions, alongside the designated tyre compounds for the weekend.
+- **Smart Data Scraping & Aggregation**: Combines data from multiple APIs (OpenF1, Jolpica) and web scrapers to provide a comprehensive, 100% data-driven experience with zero hardcoded values.
+- **Blazing Fast Caching**: Features a robust in-memory caching layer (`node-cache`) on the backend to prevent rate-limiting and ensure lightning-fast page loads.
 
-## What's inside?
+## 🛠️ Tech Stack
 
-This Turborepo includes the following packages/apps:
+F1 Race Hub is built as a monorepo utilizing **Turborepo** for optimized build performance.
 
-### Apps and Packages
+### Frontend (`apps/client`)
+- **Framework**: [Next.js](https://nextjs.org/) (React)
+- **Styling**: Tailwind CSS with custom aesthetic tokens, dark mode gradients, and dynamic layout constraints.
+- **Architecture**: A fully data-driven dashboard consuming aggregated backend APIs.
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+### Backend (`apps/server`)
+- **Framework**: [Node.js](https://nodejs.org/) & Express
+- **APIs Consumed**: 
+  - **OpenF1 API**: For live session data, weather, and current season race schedules.
+  - **Jolpica (Ergast) API**: For deep historical F1 results and standings.
+- **Tools**: `axios` for fetching, `cheerio` for web scraping (tyres/Driver of the Day), and `node-cache` for TTL-based memory caching.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## 🚀 Getting Started
 
-### Utilities
+To run F1 Race Hub locally, ensure you have Node.js and a package manager (npm, yarn, or pnpm) installed.
 
-This Turborepo has some additional tools already setup for you:
+1. **Install Dependencies**
+   ```sh
+   npm install
+   ```
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+2. **Run the Development Server**
+   Start both the frontend and backend simultaneously using Turborepo:
+   ```sh
+   npm run dev
+   ```
 
-### Build
+3. **View the Application**
+   - Frontend: Open [http://localhost:3000](http://localhost:3000) in your browser.
+   - Backend API: Running on [http://localhost:5001](http://localhost:5001).
 
-To build all apps and packages, run the following command:
+## 📁 Architecture 
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo build
-npm dlx turbo build
-npm exec turbo build
-```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-npm exec turbo build --filter=docs
-npm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-npm exec turbo dev
-npm exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-npm exec turbo dev --filter=web
-npm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-npm exec turbo login
-npm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-npm exec turbo link
-npm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- `apps/client/`: The Next.js frontend application.
+- `apps/server/`: The Express backend application acting as an API aggregator and caching layer.
+- `packages/`: Shared configurations (TypeScript, ESLint, UI stubs) across the monorepo.
