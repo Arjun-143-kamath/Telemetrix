@@ -16,7 +16,7 @@ app.use(express.json());
 app.use('/api', routes);
 
 app.get('/api/health', (req: Request, res: Response) => {
-  res.json({ status: 'ok', message: 'F1 Race Hub API is running' });
+  res.json({ status: 'ok', message: 'Telemetrix API is running' });
 });
 
 // MongoDB Connection

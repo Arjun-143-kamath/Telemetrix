@@ -1,6 +1,6 @@
-# F1 Race Hub 🏎️
+# Telemetrix 🏎️
 
-F1 Race Hub is a blazing fast, modern Formula 1 dashboard application built to provide fans with real-time race data, historical circuit statistics, and upcoming race schedules. 
+Telemetrix is a blazing fast, modern Formula 1 dashboard application built to provide fans with real-time race data, historical circuit statistics, and upcoming race schedules. 
 
 Designed with a premium, dynamic UI featuring glassmorphism, micro-animations, and striking typography, the dashboard acts as a central hub for all things F1.
 
@@ -15,7 +15,7 @@ Designed with a premium, dynamic UI featuring glassmorphism, micro-animations, a
 
 ## 🛠️ Tech Stack
 
-F1 Race Hub is built as a monorepo utilizing **Turborepo** for optimized build performance.
+Telemetrix is built as a monorepo utilizing **Turborepo** for optimized build performance.
 
 ### Frontend (`apps/client`)
 - **Framework**: [Next.js](https://nextjs.org/) (React)
@@ -31,7 +31,7 @@ F1 Race Hub is built as a monorepo utilizing **Turborepo** for optimized build p
 
 ## 🚀 Getting Started
 
-To run F1 Race Hub locally, ensure you have Node.js and a package manager (npm, yarn, or pnpm) installed.
+To run Telemetrix locally, ensure you have Node.js and a package manager (npm, yarn, or pnpm) installed.
 
 1. **Install Dependencies**
    ```sh

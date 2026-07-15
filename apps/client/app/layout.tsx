@@ -13,7 +13,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "F1 Race Hub",
+  title: "Telemetrix",
   description: "The ultimate Formula 1 race weekend dashboard",
 };
 
@@ -33,7 +33,7 @@ export default function RootLayout({
               <div className="w-6 h-6 rounded-full bg-transparent border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(253,38,92,0.5)]">
                 <div className="w-2 h-2 rounded-full bg-primary" />
               </div>
-              <h1 className="text-lg font-semibold tracking-widest text-foreground hidden sm:block">F1 • HUB</h1>
+              <h1 className="text-lg font-semibold tracking-widest text-foreground hidden sm:block">TELEMETRIX</h1>
             </div>
 
             {/* Navigation Links */}
