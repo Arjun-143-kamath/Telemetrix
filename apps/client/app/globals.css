@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Bottom Color: Dark Navy */
+    --background: 217 70% 10%;
+    --foreground: 210 40% 98%;
+    
+    /* Slightly lighter Navy for cards */
+    --card: 217 70% 14%;
+    --card-foreground: 210 40% 98%;
+    
+    --popover: 217 70% 14%;
+    --popover-foreground: 210 40% 98%;
+    
+    /* Top Color: Vibrant Pinkish-Red */
+    --primary: 345 98% 57%; 
+    --primary-foreground: 0 0% 100%;
+    
+    /* Upper Middle Color: Deep Maroon */
+    --secondary: 342 64% 31%;
+    --secondary-foreground: 210 40% 98%;
+    
+    /* Lower Middle Color: Dark Purple (Made Darker) */
+    --muted: 297 40% 11%;
+    --muted-foreground: 215 20.2% 75.1%;
+    
+    --accent: 297 40% 11%;
+    --accent-foreground: 210 40% 98%;
+    
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 217 30% 25%;
+    --input: 217 30% 25%;
+    --ring: 345 98% 57%;
+    --radius: 0.5rem;
+
+    --success: 142 71% 45%;
+    --warning: 48 96% 53%;
+    --danger: 345 98% 57%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* Glassmorphism utility */
+.glass {
+  @apply bg-background/60 backdrop-blur-md border border-border shadow-sm;
+}
