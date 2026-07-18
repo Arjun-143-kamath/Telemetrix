@@ -1,13 +1,19 @@
 import { Suspense } from 'react';
 import PointsChart from '../components/PointsChart';
 import TrackLayoutWidget from '../components/TrackLayoutWidget';
+import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 1800; // 30 minutes
+
+export const metadata: Metadata = {
+  title: 'Dashboard | Telemetrix',
+  description: 'Live F1 dashboard featuring race countdowns, weather, track stats, and live timing data.',
+};
 
 async function getDashboardData() {
   try {
     const res = await fetch('http://localhost:5000/api/dashboard', {
-      cache: 'no-store'
+      next: { revalidate: 1800 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
     return res.json();
@@ -204,7 +210,7 @@ export default async function Home() {
           {/* RIGHT SIDE: Track Layout (Massive, touching the edge) */}
           <div className="w-full lg:w-[55%] h-[50vh] lg:h-[100vh] flex items-center justify-center relative pointer-events-none">
              <div className="w-full h-full scale-110 lg:scale-[1.3] transform origin-center -translate-y-12 lg:-translate-y-24">
-                <TrackLayoutWidget raceName={nextRace?.raceName || ''} country={nextRace?.Circuit?.Location?.country} />
+                <TrackLayoutWidget raceName={nextRace?.raceName || ''} circuitId={nextRace?.Circuit?.circuitId} />
              </div>
           </div>
 

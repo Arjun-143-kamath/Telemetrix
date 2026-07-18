@@ -13,8 +13,31 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Telemetrix",
-  description: "The ultimate Formula 1 race weekend dashboard",
+  title: {
+    template: '%s | Telemetrix',
+    default: 'Telemetrix | Ultimate F1 Dashboard',
+  },
+  description: 'The ultimate Formula 1 race weekend dashboard. Track live timing, standings, calendar, and race stats.',
+  keywords: ['F1', 'Formula 1', 'dashboard', 'live timing', 'standings', 'calendar', 'race stats', 'motorsport'],
+  authors: [{ name: 'Telemetrix Team' }],
+  creator: 'Telemetrix',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://telemetrix.app',
+    title: 'Telemetrix | Ultimate F1 Dashboard',
+    description: 'The ultimate Formula 1 race weekend dashboard. Track live timing, standings, calendar, and race stats.',
+    siteName: 'Telemetrix',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Telemetrix | Ultimate F1 Dashboard',
+    description: 'The ultimate Formula 1 race weekend dashboard.',
+    creator: '@telemetrix',
+  },
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({

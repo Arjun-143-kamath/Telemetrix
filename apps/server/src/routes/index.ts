@@ -5,15 +5,17 @@ import Race from '../models/Race';
 import { getNextRace, getSeasonResults, getQualifyingResults, getCircuitStats } from '../services/ergast.service';
 import { getDashboardWeather } from '../services/weather.service';
 import { getFastestPitStop } from '../services/openf1.service';
-import { getDriverOfTheDay, getTyreCompounds } from '../services/scraper.service';
+import { getDriverOfTheDay, getTyreCompounds } from '../Scrappers/wiki.scraper';
 import standingsRoute from './standings';
 
 import calendarRoute from './calendar';
+import racesRoute from './races';
 
 const router = Router();
 
 router.use('/standings', standingsRoute);
 router.use('/calendar', calendarRoute);
+router.use('/races', racesRoute);
 
 // --- Dashboard Aggregator Route ---
 router.get('/dashboard', async (req, res) => {
@@ -48,30 +50,16 @@ router.get('/dashboard', async (req, res) => {
       }
     }
 
-    // Try fetching fastest pit stop for latest session
-    const fastestPitStop = await getFastestPitStop();
-    
-    // Fetch aggregated/scraped data for the dashboard
-    let circuitStats = null;
-    let tyres: string[] = [];
-    let driverOfTheDay = 'Info not available';
-    
-    if (nextRace) {
-       const circuitId = nextRace.Circuit?.circuitId;
-       const raceName = nextRace.raceName;
-       const season = nextRace.season;
-       
-       if (circuitId) {
-         circuitStats = await getCircuitStats(circuitId);
-       }
-       if (raceName && season) {
-         tyres = await getTyreCompounds(raceName, season);
-       }
-    }
-    
-    if (lastRace) {
-       driverOfTheDay = await getDriverOfTheDay(lastRace.raceName, lastRace.season);
-    }
+    const circuitId = nextRace?.Circuit?.circuitId;
+    const raceName = nextRace?.raceName;
+    const season = nextRace?.season;
+
+    const [fastestPitStop, circuitStats, tyres, driverOfTheDay] = await Promise.all([
+      getFastestPitStop(),
+      circuitId ? getCircuitStats(circuitId) : Promise.resolve(null),
+      (raceName && season) ? getTyreCompounds(raceName, season) : Promise.resolve([]),
+      lastRace ? getDriverOfTheDay(lastRace.raceName, lastRace.season) : Promise.resolve('Info not available')
+    ]);
 
     res.json({
       nextRace,

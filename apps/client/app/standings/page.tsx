@@ -1,11 +1,17 @@
 import PointsChart from '../../components/PointsChart';
+import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 1800; // 30 minutes
+
+export const metadata: Metadata = {
+  title: 'Championship Standings | Telemetrix',
+  description: 'Current Formula 1 driver and constructor championship standings and charts.',
+};
 
 async function getStandingsData() {
   try {
     const res = await fetch('http://localhost:5000/api/standings', {
-      cache: 'no-store'
+      next: { revalidate: 1800 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
     return res.json();

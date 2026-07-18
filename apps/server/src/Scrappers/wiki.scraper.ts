@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { withCache } from './cache.service';
+import { withCache } from '../services/cache.service';
 
 export const getDriverOfTheDay = async (raceName: string, year: string | number) => {
   return withCache(`dotd_${year}_${raceName}`, async () => {
