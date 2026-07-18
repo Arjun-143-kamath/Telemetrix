@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import axios from 'axios';
 import { getSeasonCalendar, getSeasonResults } from '../services/ergast.service';
-import { getDriverOfTheDay } from '../Scrappers/wiki.scraper';
+import { getDriverOfTheDay, getTyreCompounds } from '../Scrappers/wiki.scraper';
 import { getF1ComPracticeResults, getF1ComSprintQualifyingResults } from '../Scrappers/f1.scraper';
 import { getFastestPitStop, getPracticeClassification } from '../services/openf1.service';
 import { withCache } from '../services/cache.service';
@@ -104,6 +104,7 @@ router.get('/:round', async (req, res) => {
       }
 
       const driverOfTheDay = await getDriverOfTheDay(raceName, year);
+      const tyres = await getTyreCompounds(raceName, year);
 
       return {
         round: raceInfo.round,
@@ -111,6 +112,7 @@ router.get('/:round', async (req, res) => {
         circuit: raceInfo.Circuit,
         date: raceInfo.date,
         time: raceInfo.time,
+        tyres,
         isSprintWeekend,
         sessions: {
           race: { classification: raceClassification, fastestPitstop, driverOfTheDay },

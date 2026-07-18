@@ -64,6 +64,21 @@ export const getTyreCompounds = async (raceName: string, year: string | number) 
            }
         }
       });
+
+      if (tyres.length === 0) {
+        // Fallback: search paragraphs for Pirelli tyre mentions
+        $('p').each((i, el) => {
+          const text = $(el).text();
+          if (text.toLowerCase().includes('pirelli') && text.toLowerCase().includes('tyre')) {
+             const matches = text.match(/C[1-5]/g);
+             if (matches && matches.length >= 2) {
+                // Ensure unique values
+                tyres = Array.from(new Set(matches)).sort();
+                return false; // break loop
+             }
+          }
+        });
+      }
       
       return tyres.length > 0 ? tyres : [];
     } catch (error) {

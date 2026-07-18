@@ -74,6 +74,26 @@ export default function RaceDetailsPage() {
         </div>
       </div>
 
+      {/* Tyres Allocation */}
+      {data.tyres && data.tyres.length > 0 && (
+        <div className="flex items-center gap-3 mt-2 mb-2 px-2">
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tyre Allocation:</span>
+          <div className="flex gap-2">
+            {data.tyres.map((tyre: string, idx: number) => {
+               const colorClass = idx === 0 ? 'bg-white text-black border-gray-300' 
+                                : idx === 1 ? 'bg-yellow-400 text-black border-yellow-500' 
+                                : 'bg-red-500 text-white border-red-600';
+               const label = idx === 0 ? 'Hard' : idx === 1 ? 'Medium' : 'Soft';
+               return (
+                 <div key={tyre} className={`flex items-center justify-center w-8 h-8 rounded-full border-2 font-black text-xs shadow-md ${colorClass}`} title={`${label} (${tyre})`}>
+                   {tyre}
+                 </div>
+               );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex overflow-x-auto gap-2 bg-black/20 p-2 rounded-xl backdrop-blur-md border border-border/20 hide-scrollbar">
         {tabs.map(tab => (

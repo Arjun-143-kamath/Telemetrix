@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 async function getDashboardData() {
   try {
-    const res = await fetch('http://localhost:5000/api/dashboard', {
+    const res = await fetch('http://localhost:5000/api/dashboard?v=2', {
       next: { revalidate: 1800 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
@@ -216,11 +216,17 @@ export default async function Home() {
                 <div className="flex flex-col mt-2">
                   <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Compounds</span>
                   <div className="flex gap-2">
-                    {displayCircuitStats.tyres.length > 0 ? displayCircuitStats.tyres.map((t: string) => (
-                      <span key={t} className="w-8 h-8 rounded-full border-2 border-muted-foreground/30 flex items-center justify-center text-[10px] font-bold text-foreground">
-                        {t}
-                      </span>
-                    )) : (
+                    {displayCircuitStats.tyres.length > 0 ? displayCircuitStats.tyres.map((tyre: string, idx: number) => {
+                       const colorClass = idx === 0 ? 'bg-white text-black border-gray-300' 
+                                        : idx === 1 ? 'bg-yellow-400 text-black border-yellow-500' 
+                                        : 'bg-red-500 text-white border-red-600';
+                       const label = idx === 0 ? 'Hard' : idx === 1 ? 'Medium' : 'Soft';
+                       return (
+                         <div key={tyre} className={`flex items-center justify-center w-8 h-8 rounded-full border-2 font-black text-[10px] shadow-md ${colorClass}`} title={`${label} (${tyre})`}>
+                           {tyre}
+                         </div>
+                       );
+                    }) : (
                       <span className="text-sm font-medium text-muted-foreground">Info not available</span>
                     )}
                   </div>
