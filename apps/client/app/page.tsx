@@ -63,8 +63,10 @@ export default async function Home() {
   }
   if (nextRace?.date) {
     const raceDate = new Date(`${nextRace.date}T${nextRace.time || '00:00:00Z'}`);
-    const diff = raceDate.getTime() - new Date().getTime();
-    daysToRace = Math.max(0, Math.ceil(diff / (1000 * 3600 * 24)));
+    const now = new Date();
+    const raceDay = Date.UTC(raceDate.getFullYear(), raceDate.getMonth(), raceDate.getDate());
+    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    daysToRace = Math.max(0, Math.floor((raceDay - today) / (1000 * 3600 * 24)));
   }
 
   // Circuit Stats for UI
@@ -147,15 +149,41 @@ export default async function Home() {
                 <span className="text-xs uppercase tracking-widest text-primary font-bold">Sessions</span>
                 {['FirstPractice', 'Qualifying', 'Race'].map((session, idx) => {
                   let time = 'TBA';
-                  if (session === 'Race') time = new Date(`${nextRace?.date}T${nextRace?.time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                  else if (nextRace?.[session]) time = new Date(`${nextRace[session].date}T${nextRace[session].time}`).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                  let sessionDateObj = null;
+                  
+                  if (session === 'Race') {
+                    if (nextRace?.date) {
+                      sessionDateObj = new Date(`${nextRace.date}T${nextRace.time || '00:00:00Z'}`);
+                    }
+                  } else if (nextRace?.[session]) {
+                    sessionDateObj = new Date(`${nextRace[session].date}T${nextRace[session].time || '00:00:00Z'}`);
+                  }
+                  
+                  if (sessionDateObj) {
+                    time = sessionDateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                  }
                   
                   const labels = { FirstPractice: 'FP1', Qualifying: 'QUAL', Race: 'RACE' };
+                  const now = new Date();
+                  
+                  // A session is considered "Live" for 2 hours after its start time
+                  const isLive = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() && now.getTime() < sessionDateObj.getTime() + (2 * 3600 * 1000) : false;
+                  // A session is considered "Done" 2 hours after its start time
+                  const isDone = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() + (2 * 3600 * 1000) : false;
                   
                   return (
-                    <div key={session} className="flex flex-col">
-                       <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-1">{labels[session as keyof typeof labels]}</span>
-                       <span className="text-lg font-bold">{time}</span>
+                    <div key={session} className={`flex flex-col transition-all duration-500 ${isDone ? 'opacity-40 grayscale' : 'opacity-100'}`}>
+                       <div className="flex items-center gap-2 mb-1">
+                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDone ? 'text-muted-foreground' : 'text-primary'}`}>
+                           {labels[session as keyof typeof labels]}
+                         </span>
+                         {isLive && (
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                         )}
+                       </div>
+                       <span className={`text-lg font-bold ${isDone ? 'text-muted-foreground line-through decoration-muted-foreground/30' : (isLive ? 'text-primary' : 'text-foreground')}`}>
+                         {time}
+                       </span>
                     </div>
                   )
                 })}
