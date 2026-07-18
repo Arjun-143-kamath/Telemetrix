@@ -20,6 +20,19 @@ export const getNextRace = async () => {
   }, 3600 * 6); // Cache for 6 hours
 };
 
+const getTTLUntilNextRace = async () => {
+  const nextRace = await getNextRace();
+  if (!nextRace) return 3600 * 24 * 7;
+  const raceDate = new Date(`${nextRace.date}T${nextRace.time || '00:00:00Z'}`);
+  // Estimate race end time (4 hours after start)
+  const raceEndTime = raceDate.getTime() + (4 * 3600 * 1000);
+  const now = Date.now();
+  if (now < raceEndTime) {
+    return Math.max(60, Math.floor((raceEndTime - now) / 1000));
+  }
+  return 3600; // Check every hour if we are past the race end time
+};
+
 export const getSeasonCalendar = async () => {
   return withCache('season_calendar', async () => {
     try {
@@ -29,11 +42,12 @@ export const getSeasonCalendar = async () => {
       console.error('Error fetching season calendar:', error);
       return [];
     }
-  }, 3600 * 24); // Cache for 24 hours
+  }, 3600 * 24 * 7); // Cache for 7 days
 };
 
 
 export const getDriverStandings = async () => {
+  const ttl = await getTTLUntilNextRace();
   return withCache('driver_standings', async () => {
     try {
       const response = await axios.get(`${JOLPICA_BASE_URL}/current/driverStandings.json`);
@@ -43,10 +57,11 @@ export const getDriverStandings = async () => {
       console.error('Error fetching driver standings:', error);
       return [];
     }
-  }, 3600 * 24); // Cache for 24 hours
+  }, ttl); 
 };
 
 export const getConstructorStandings = async () => {
+  const ttl = await getTTLUntilNextRace();
   return withCache('constructor_standings', async () => {
     try {
       const response = await axios.get(`${JOLPICA_BASE_URL}/current/constructorStandings.json`);
@@ -56,10 +71,11 @@ export const getConstructorStandings = async () => {
       console.error('Error fetching constructor standings:', error);
       return [];
     }
-  }, 3600 * 24); // Cache for 24 hours
+  }, ttl);
 };
 
 export const getSeasonResults = async () => {
+  const ttl = await getTTLUntilNextRace();
   return withCache('season_results', async () => {
     try {
       const racesMap = new Map();
@@ -88,10 +104,11 @@ export const getSeasonResults = async () => {
       console.error('Error fetching season results:', error);
       return [];
     }
-  }, 3600 * 24); // Cache for 24 hours
+  }, ttl);
 };
 
 export const getQualifyingResults = async () => {
+  const ttl = await getTTLUntilNextRace();
   return withCache('qualifying_results', async () => {
     try {
       const qualyMap = new Map();
@@ -120,7 +137,7 @@ export const getQualifyingResults = async () => {
       console.error('Error fetching qualifying results:', error);
       return [];
     }
-  }, 3600 * 24); // Cache for 24 hours
+  }, ttl);
 };
 
 export const getCircuitStats = async (circuitId: string) => {

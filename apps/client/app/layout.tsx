@@ -76,9 +76,11 @@ export default function RootLayout({
                   Calendar
                 </div>
               </Link>
-              <div className="px-3 py-2 text-muted-foreground hover:bg-accent/30 hover:text-foreground rounded-md cursor-pointer text-sm font-medium transition-colors hidden sm:block">
-                Vault
-              </div>
+              <Link href="/news">
+                <div className="px-3 py-2 text-muted-foreground hover:bg-accent/30 hover:text-foreground rounded-md cursor-pointer text-sm font-medium transition-colors hidden sm:block">
+                  News
+                </div>
+              </Link>
             </nav>
 
             {/* Actions */}

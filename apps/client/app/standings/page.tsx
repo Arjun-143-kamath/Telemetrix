@@ -1,7 +1,7 @@
 import PointsChart from '../../components/PointsChart';
 import { Metadata } from 'next';
 
-export const revalidate = 1800; // 30 minutes
+export const revalidate = 60; // 1 minute
 
 export const metadata: Metadata = {
   title: 'Championship Standings | Telemetrix',
@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 async function getStandingsData() {
   try {
     const res = await fetch('http://localhost:5000/api/standings', {
-      next: { revalidate: 1800 }
+      next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
     return res.json();

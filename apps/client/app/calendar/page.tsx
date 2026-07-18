@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import Image from 'next/image';
 
-export const revalidate = 1800; // 30 minutes
+export const revalidate = 60; // 1 minute
 
 export const metadata: Metadata = {
   title: 'Race Calendar | Telemetrix',
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 async function getCalendarData() {
   try {
     const res = await fetch('http://localhost:5000/api/calendar', {
-      next: { revalidate: 1800 }
+      next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
     return res.json();

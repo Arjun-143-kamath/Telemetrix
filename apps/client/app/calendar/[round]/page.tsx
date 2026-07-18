@@ -134,38 +134,46 @@ export default function RaceDetailsPage() {
 
             {/* Classification Table */}
             <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-muted-foreground uppercase bg-black/40 border-b border-border/50">
-                    <tr>
-                      <th className="px-4 py-4 font-bold text-center w-12">Pos</th>
-                      <th className="px-4 py-4 font-bold">Driver</th>
-                      <th className="px-4 py-4 font-bold">Constructor</th>
-                      <th className="px-4 py-4 font-bold">Time / Gap</th>
-                      {activeTab === 'race' && <th className="px-4 py-4 font-bold">Top Speed</th>}
-                      <th className="px-4 py-4 font-bold text-center">Points</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {currentSessionData.classification.map((row: any, i: number) => (
-                      <tr key={i} className="border-b border-border/20 hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-3 text-center font-bold">{row.position}</td>
-                        <td className="px-4 py-3">
-                          <span className="font-bold text-foreground">{row.Driver.givenName} {row.Driver.familyName}</span>
-                          <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block">{row.Driver.permanentNumber}</span>
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{row.Constructor.name}</td>
-                        <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
-                        {activeTab === 'race' && (
-                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
-                            {row.FastestLap?.AverageSpeed?.speed ? `${row.FastestLap.AverageSpeed.speed} km/h` : 'N/A'}
-                          </td>
-                        )}
-                        <td className="px-4 py-3 text-center font-bold text-primary">{row.points || '0'}</td>
+              <div className="overflow-x-auto custom-scrollbar">
+                {currentSessionData.classification.length > 0 ? (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-border/40 text-muted-foreground text-xs uppercase tracking-wider bg-black/10">
+                        <th className="px-4 py-4 font-bold text-center w-16">Pos</th>
+                        <th className="px-4 py-4 font-bold w-12">No</th>
+                        <th className="px-4 py-4 font-bold">Driver</th>
+                        <th className="px-4 py-4 font-bold">Constructor</th>
+                        <th className="px-4 py-4 font-bold">Time / Gap</th>
+                        {activeTab === 'race' && currentSessionData.classification.some((r: any) => r.FastestLap?.AverageSpeed?.speed) && <th className="px-4 py-4 font-bold">Top Speed</th>}
+                        <th className="px-4 py-4 font-bold text-center">Points</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {currentSessionData.classification.map((row: any, idx: number) => (
+                        <tr key={idx} className="border-b border-border/20 hover:bg-white/5 transition-colors group">
+                          <td className="px-4 py-3 text-center">
+                            <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md font-black text-xs ${idx === 0 ? 'bg-yellow-500/20 text-yellow-500' : idx === 1 ? 'bg-gray-400/20 text-gray-400' : idx === 2 ? 'bg-orange-500/20 text-orange-500' : 'text-muted-foreground'}`}>
+                              {row.position || idx + 1}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.number || row.Driver.permanentNumber}</td>
+                          <td className="px-4 py-3 font-bold text-foreground">
+                            {row.Driver.givenName} {row.Driver.familyName}
+                            <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block">{row.Driver.permanentNumber}</span>
+                          </td>
+                          <td className="px-4 py-3 text-muted-foreground">{row.Constructor.name}</td>
+                          <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
+                          {activeTab === 'race' && currentSessionData.classification.some((r: any) => r.FastestLap?.AverageSpeed?.speed) && (
+                            <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                              {row.FastestLap?.AverageSpeed?.speed ? `${row.FastestLap.AverageSpeed.speed} km/h` : 'N/A'}
+                            </td>
+                          )}
+                          <td className="px-4 py-3 text-center font-bold text-primary">{row.points || '0'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : null}
               </div>
             </div>
           </>

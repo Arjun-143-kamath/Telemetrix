@@ -8,7 +8,7 @@ import ClassificationList from '../components/ClassificationList';
 import { getDaysToRace } from '../utils/time';
 import { Metadata } from 'next';
 
-export const revalidate = 1800; // 30 minutes
+export const revalidate = 60; // 1 minute
 
 export const metadata: Metadata = {
   title: 'Dashboard | Telemetrix',
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 async function getDashboardData() {
   try {
     const res = await fetch('http://localhost:5000/api/dashboard?v=3', {
-      next: { revalidate: 1800 }
+      next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
     return res.json();
