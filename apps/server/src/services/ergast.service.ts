@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { withCache } from './cache.service';
 
-const JOLPICA_BASE_URL = 'http://api.jolpi.ca/ergast/f1';
+const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 
 export const getNextRace = async () => {
   return withCache('next_race', async () => {

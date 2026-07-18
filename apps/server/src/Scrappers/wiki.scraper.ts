@@ -13,7 +13,7 @@ export const getDriverOfTheDay = async (raceName: string, year: string | number)
       // Since scraping F1.com is complex and layout changes, we'll implement a basic Wikipedia scrape attempt first.
       
       const wikiUrl = `https://en.wikipedia.org/wiki/${year}_${raceName.replace(/ /g, '_')}`;
-      const response = await axios.get(wikiUrl);
+      const response = await axios.get(wikiUrl, { headers: { 'User-Agent': 'F1RaceHubBot/1.0 (https://github.com/f1racehub)' } });
       const $ = cheerio.load(response.data);
       
       // Look for "Driver of the Day" in the infobox or tables
@@ -44,7 +44,7 @@ export const getTyreCompounds = async (raceName: string, year: string | number) 
       if (!raceName || !year) return [];
       
       const wikiUrl = `https://en.wikipedia.org/wiki/${year}_${raceName.replace(/ /g, '_')}`;
-      const response = await axios.get(wikiUrl);
+      const response = await axios.get(wikiUrl, { headers: { 'User-Agent': 'F1RaceHubBot/1.0 (https://github.com/f1racehub)' } });
       const $ = cheerio.load(response.data);
       
       let tyres: string[] = [];

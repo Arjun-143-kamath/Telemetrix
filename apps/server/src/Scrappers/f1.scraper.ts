@@ -6,7 +6,7 @@ import { withCache } from '../services/cache.service';
  * Normalizes a country name to match F1.com URL slugs
  */
 const normalizeCountry = (country: string) => {
-  return country.toLowerCase().replace(/ /g, '-').replace('united-states', 'usa');
+  return country.toLowerCase().replace(/ /g, '-').replace('united-states', 'usa').replace('uk', 'great-britain');
 };
 
 /**
@@ -98,8 +98,8 @@ export const getF1ComPracticeResults = async (year: string | number, country: st
               name: car
             },
             Time: {
-              time: i === 0 ? time : gap,
-              gap: i === 0 ? 'Interval' : time // F1.com sometimes puts gap in 'Time/Gap'
+              time: time,
+              gap: time 
             },
             points: "0"
           });
@@ -164,8 +164,8 @@ export const getF1ComSprintQualifyingResults = async (year: string | number, cou
               name: car
             },
             Time: {
-              time: i === 0 ? time : gap,
-              gap: i === 0 ? 'Interval' : time
+              time: time,
+              gap: time
             },
             points: "0"
           });

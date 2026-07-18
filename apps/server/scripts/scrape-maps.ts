@@ -3,7 +3,7 @@ import * as cheerio from 'cheerio';
 import * as fs from 'fs';
 import * as path from 'path';
 
-const JOLPICA_BASE_URL = 'http://api.jolpi.ca/ergast/f1';
+const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 const OUTPUT_DIR = path.join(__dirname, '../../client/public/tracks');
 
 async function scrapeMaps() {

@@ -161,7 +161,7 @@ export default function RaceDetailsPage() {
                       <th className="px-4 py-4 font-bold">Driver</th>
                       <th className="px-4 py-4 font-bold">Constructor</th>
                       <th className="px-4 py-4 font-bold">Time / Gap</th>
-                      <th className="px-4 py-4 font-bold">Top Speed</th>
+                      {activeTab === 'race' && <th className="px-4 py-4 font-bold">Top Speed</th>}
                       <th className="px-4 py-4 font-bold text-center">Points</th>
                     </tr>
                   </thead>
@@ -174,8 +174,12 @@ export default function RaceDetailsPage() {
                           <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block">{row.Driver.permanentNumber}</span>
                         </td>
                         <td className="px-4 py-3 text-muted-foreground">{row.Constructor.name}</td>
-                        <td className="px-4 py-3 font-mono text-xs">{row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
-                        <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.FastestLap?.AverageSpeed?.speed ? `${row.FastestLap.AverageSpeed.speed} km/h` : 'N/A'}</td>
+                        <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
+                        {activeTab === 'race' && (
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+                            {row.FastestLap?.AverageSpeed?.speed ? `${row.FastestLap.AverageSpeed.speed} km/h` : 'N/A'}
+                          </td>
+                        )}
                         <td className="px-4 py-3 text-center font-bold text-primary">{row.points || '0'}</td>
                       </tr>
                     ))}

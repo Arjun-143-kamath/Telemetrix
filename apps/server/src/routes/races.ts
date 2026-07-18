@@ -7,7 +7,7 @@ import { getFastestPitStop, getPracticeClassification } from '../services/openf1
 import { withCache } from '../services/cache.service';
 
 const router = Router();
-const JOLPICA_BASE_URL = 'http://api.jolpi.ca/ergast/f1';
+const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 
 router.get('/:round', async (req, res) => {
   const round = req.params.round;

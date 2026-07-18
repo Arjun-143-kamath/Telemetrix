@@ -30,7 +30,7 @@ export default async function Home() {
     return <div className="p-8 text-center text-destructive">Failed to load dashboard data. Ensure backend is running.</div>;
   }
 
-  const { nextRace, lastRace, lastRacePodium, weather, fastestPitStop, lastRaceQualifying, circuitStats, tyres, driverOfTheDay } = data;
+  const { nextRace, lastRace, lastRacePodium, weather, fastestPitStop, lastRaceQualifying, circuitStats, tyres, driverOfTheDay, openf1Sessions } = data;
 
   let daysToRace = 0;
 
@@ -164,12 +164,25 @@ export default async function Home() {
                   }
                   
                   const labels = { FirstPractice: 'FP1', Qualifying: 'QUAL', Race: 'RACE' };
+                  const openf1Map = { FirstPractice: 'Practice 1', Qualifying: 'Qualifying', Race: 'Race' };
+                  
+                  let sessionEndObj = null;
+                  if (openf1Sessions && openf1Sessions.length > 0) {
+                     const f1Session = openf1Sessions.find((s: any) => s.session_name === openf1Map[session as keyof typeof openf1Map]);
+                     if (f1Session && f1Session.date_end) {
+                        sessionEndObj = new Date(f1Session.date_end);
+                     }
+                  }
+                  
                   const now = new Date();
                   
-                  // A session is considered "Live" for 2 hours after its start time
-                  const isLive = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() && now.getTime() < sessionDateObj.getTime() + (2 * 3600 * 1000) : false;
-                  // A session is considered "Done" 2 hours after its start time
-                  const isDone = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() + (2 * 3600 * 1000) : false;
+                  // Use OpenF1 date_end if available, otherwise fallback to start + 2 hours
+                  const endTimeMs = sessionEndObj ? sessionEndObj.getTime() : (sessionDateObj ? sessionDateObj.getTime() + (2 * 3600 * 1000) : 0);
+                  
+                  // A session is considered "Live" until its exact end time
+                  const isLive = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() && now.getTime() < endTimeMs : false;
+                  // A session is considered "Done" strictly after its exact end time
+                  const isDone = sessionDateObj ? now.getTime() >= endTimeMs : false;
                   
                   return (
                     <div key={session} className={`flex flex-col transition-all duration-500 ${isDone ? 'opacity-40 grayscale' : 'opacity-100'}`}>

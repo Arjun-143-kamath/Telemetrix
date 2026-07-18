@@ -4,6 +4,7 @@ import Circuit from '../models/Circuit';
 import Race from '../models/Race';
 import { getNextRace, getSeasonResults, getQualifyingResults, getCircuitStats } from '../services/ergast.service';
 import { getDashboardWeather } from '../services/weather.service';
+import axios from 'axios';
 import { getFastestPitStop } from '../services/openf1.service';
 import { getDriverOfTheDay, getTyreCompounds } from '../Scrappers/wiki.scraper';
 import standingsRoute from './standings';
@@ -61,6 +62,17 @@ router.get('/dashboard', async (req, res) => {
       lastRace ? getDriverOfTheDay(lastRace.raceName, lastRace.season) : Promise.resolve('Info not available')
     ]);
 
+    const country = nextRace?.Circuit?.Location?.country;
+    let openf1Sessions = [];
+    if (country && season) {
+      try {
+        const res = await axios.get(`https://api.openf1.org/v1/sessions?year=${season}&country_name=${encodeURIComponent(country)}`);
+        openf1Sessions = res.data;
+      } catch (e: any) {
+        console.error('Error fetching openf1 sessions:', e.message);
+      }
+    }
+
     res.json({
       nextRace,
       lastRace,
@@ -70,7 +82,8 @@ router.get('/dashboard', async (req, res) => {
       lastRaceQualifying,
       circuitStats,
       tyres,
-      driverOfTheDay
+      driverOfTheDay,
+      openf1Sessions
     });
   } catch (error) {
     console.error('Dashboard error:', error);

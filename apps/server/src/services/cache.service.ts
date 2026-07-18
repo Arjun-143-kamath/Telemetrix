@@ -25,9 +25,11 @@ export async function withCache<T>(
     const data = await fetcher();
     
     // Only cache if data is valid (not null/undefined/empty array). 
-    // If it's an empty array, it might be a temporary API error, but valid if it's the beginning of the season. 
-    // We cache it anyway, but you can add more strict checks if needed.
     if (data !== null && data !== undefined) {
+      // Don't cache empty arrays or fallback strings which usually indicate an API error
+      if (Array.isArray(data) && data.length === 0) return data;
+      if (typeof data === 'string' && data === 'Info not available') return data;
+      
       cache.set(key, data, ttl);
     }
     
