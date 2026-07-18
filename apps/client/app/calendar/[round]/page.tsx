@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import TyreBadges from '../../../components/TyreBadges';
+import AnimatedPodium from '../../../components/AnimatedPodium';
+import { formatDate } from '../../../utils/time';
 
 export default function RaceDetailsPage() {
   const params = useParams();
@@ -69,7 +72,7 @@ export default function RaceDetailsPage() {
             <p className="text-xl text-muted-foreground mt-1">{data.circuit.circuitName} - {data.circuit.Location.country}</p>
           </div>
           <div className="text-right hidden sm:block">
-            <span className="text-2xl font-bold">{new Date(`${data.date}T${data.time || '00:00:00Z'}`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span className="text-2xl font-bold">{formatDate(data.date, data.time)}</span>
           </div>
         </div>
       </div>
@@ -78,19 +81,7 @@ export default function RaceDetailsPage() {
       {data.tyres && data.tyres.length > 0 && (
         <div className="flex items-center gap-3 mt-2 mb-2 px-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Tyre Allocation:</span>
-          <div className="flex gap-2">
-            {data.tyres.map((tyre: string, idx: number) => {
-               const colorClass = idx === 0 ? 'bg-white text-black border-gray-300' 
-                                : idx === 1 ? 'bg-yellow-400 text-black border-yellow-500' 
-                                : 'bg-red-500 text-white border-red-600';
-               const label = idx === 0 ? 'Hard' : idx === 1 ? 'Medium' : 'Soft';
-               return (
-                 <div key={tyre} className={`flex items-center justify-center w-8 h-8 rounded-full border-2 font-black text-xs shadow-md ${colorClass}`} title={`${label} (${tyre})`}>
-                   {tyre}
-                 </div>
-               );
-            })}
-          </div>
+          <TyreBadges tyres={data.tyres} />
         </div>
       )}
 
@@ -139,37 +130,7 @@ export default function RaceDetailsPage() {
         ) : (
           <>
             {/* Podium */}
-            <div className="flex justify-center items-end gap-2 sm:gap-4 md:gap-8 h-64 mt-8 mb-8">
-              {/* 2nd Place */}
-              {podium[1] && (
-                <div className="flex flex-col items-center justify-end h-[80%] w-24 sm:w-32 animate-in slide-in-from-bottom duration-700 delay-100">
-                  <span className="text-lg font-bold text-gray-300">{podium[1].Driver.familyName}</span>
-                  <div className="w-full h-full bg-gradient-to-t from-gray-500/20 to-gray-400/50 rounded-t-xl border-t-4 border-gray-300 flex items-start justify-center pt-4 shadow-[0_0_20px_rgba(209,213,219,0.2)]">
-                    <span className="text-4xl font-black text-white/50">2</span>
-                  </div>
-                </div>
-              )}
-              
-              {/* 1st Place */}
-              {podium[0] && (
-                <div className="flex flex-col items-center justify-end h-full w-28 sm:w-36 animate-in slide-in-from-bottom duration-700">
-                  <span className="text-xl font-black text-yellow-500">{podium[0].Driver.familyName}</span>
-                  <div className="w-full h-full bg-gradient-to-t from-yellow-600/20 to-yellow-500/50 rounded-t-xl border-t-4 border-yellow-400 flex items-start justify-center pt-4 shadow-[0_0_30px_rgba(234,179,8,0.3)]">
-                    <span className="text-5xl font-black text-white/70">1</span>
-                  </div>
-                </div>
-              )}
-              
-              {/* 3rd Place */}
-              {podium[2] && (
-                <div className="flex flex-col items-center justify-end h-[60%] w-24 sm:w-32 animate-in slide-in-from-bottom duration-700 delay-200">
-                  <span className="text-lg font-bold text-orange-400">{podium[2].Driver.familyName}</span>
-                  <div className="w-full h-full bg-gradient-to-t from-orange-700/20 to-orange-500/40 rounded-t-xl border-t-4 border-orange-500 flex items-start justify-center pt-4 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
-                    <span className="text-3xl font-black text-white/40">3</span>
-                  </div>
-                </div>
-              )}
-            </div>
+            <AnimatedPodium podium={podium} />
 
             {/* Classification Table */}
             <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl overflow-hidden">

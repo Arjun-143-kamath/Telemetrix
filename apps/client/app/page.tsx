@@ -1,6 +1,11 @@
 import { Suspense } from 'react';
-import PointsChart from '../components/PointsChart';
 import TrackLayoutWidget from '../components/TrackLayoutWidget';
+import SessionTracker from '../components/SessionTracker';
+import TyreBadges from '../components/TyreBadges';
+import CompactPodium from '../components/CompactPodium';
+import RaceFactsWidget from '../components/RaceFactsWidget';
+import ClassificationList from '../components/ClassificationList';
+import { getDaysToRace } from '../utils/time';
 import { Metadata } from 'next';
 
 export const revalidate = 1800; // 30 minutes
@@ -12,7 +17,7 @@ export const metadata: Metadata = {
 
 async function getDashboardData() {
   try {
-    const res = await fetch('http://localhost:5000/api/dashboard?v=2', {
+    const res = await fetch('http://localhost:5000/api/dashboard?v=3', {
       next: { revalidate: 1800 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
@@ -32,7 +37,7 @@ export default async function Home() {
 
   const { nextRace, lastRace, lastRacePodium, weather, fastestPitStop, lastRaceQualifying, circuitStats, tyres, driverOfTheDay, openf1Sessions } = data;
 
-  let daysToRace = 0;
+  const daysToRace = getDaysToRace(nextRace?.date, nextRace?.time);
 
   // Process Previous Race Facts
   let prevFastestLapDriver = 'Info not available';
@@ -61,13 +66,6 @@ export default async function Home() {
       fastestPitDriver = `${pitDriver.Driver.givenName.charAt(0)}. ${pitDriver.Driver.familyName}`;
     }
   }
-  if (nextRace?.date) {
-    const raceDate = new Date(`${nextRace.date}T${nextRace.time || '00:00:00Z'}`);
-    const now = new Date();
-    const raceDay = Date.UTC(raceDate.getFullYear(), raceDate.getMonth(), raceDate.getDate());
-    const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
-    daysToRace = Math.max(0, Math.floor((raceDay - today) / (1000 * 3600 * 24)));
-  }
 
   // Circuit Stats for UI
   const displayCircuitStats = {
@@ -81,15 +79,13 @@ export default async function Home() {
   const year = nextRace?.season || new Date().getFullYear();
   if (nextRace?.Circuit?.Location?.country) {
     try {
-      // Scrape the official F1 website for the real sponsored name
       const res = await fetch(`https://www.formula1.com/en/racing/${year}/${nextRace.Circuit.Location.country}.html`, { 
         headers: { 'User-Agent': 'Mozilla/5.0' },
         next: { revalidate: 3600 } 
       });
       if (res.ok) {
         const html = await res.text();
-        const regex = new RegExp(`FORMULA 1.*?${year}`, 'i');
-        const match = html.match(regex);
+        const match = html.match(new RegExp(`FORMULA 1.*?${year}`, 'i'));
         if (match && match[0]) {
           officialName = match[0].toUpperCase();
         }
@@ -100,6 +96,28 @@ export default async function Home() {
   }
 
   const shortName = nextRace?.Circuit?.Location?.country ? nextRace.Circuit.Location.country.toUpperCase() : 'SEASON OVER';
+
+  const sessionList = ['FirstPractice', 'Qualifying', 'Race'].map(sessionKey => {
+    let dateStr = sessionKey === 'Race' ? nextRace?.date : nextRace?.[sessionKey]?.date;
+    let timeStr = sessionKey === 'Race' ? nextRace?.time : nextRace?.[sessionKey]?.time;
+    
+    const labels = { FirstPractice: 'FP1', Qualifying: 'QUAL', Race: 'RACE' };
+    const openf1Map = { FirstPractice: 'Practice 1', Qualifying: 'Qualifying', Race: 'Race' };
+    
+    let openF1EndTimeStr = undefined;
+    if (openf1Sessions) {
+      const f1Session = openf1Sessions.find((s: any) => s.session_name === openf1Map[sessionKey as keyof typeof openf1Map]);
+      if (f1Session?.date_end) openF1EndTimeStr = f1Session.date_end;
+    }
+
+    return {
+      name: sessionKey,
+      label: labels[sessionKey as keyof typeof labels],
+      dateStr,
+      timeStr,
+      openF1EndTimeStr
+    };
+  });
 
   return (
     <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -144,63 +162,7 @@ export default async function Home() {
             {/* Circuit Information Grid */}
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-8 border-t border-border/40 pt-8 mt-2">
               
-              {/* Sessions */}
-              <div className="flex flex-col gap-5">
-                <span className="text-xs uppercase tracking-widest text-primary font-bold">Sessions</span>
-                {['FirstPractice', 'Qualifying', 'Race'].map((session, idx) => {
-                  let time = 'TBA';
-                  let sessionDateObj = null;
-                  
-                  if (session === 'Race') {
-                    if (nextRace?.date) {
-                      sessionDateObj = new Date(`${nextRace.date}T${nextRace.time || '00:00:00Z'}`);
-                    }
-                  } else if (nextRace?.[session]) {
-                    sessionDateObj = new Date(`${nextRace[session].date}T${nextRace[session].time || '00:00:00Z'}`);
-                  }
-                  
-                  if (sessionDateObj) {
-                    time = sessionDateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                  }
-                  
-                  const labels = { FirstPractice: 'FP1', Qualifying: 'QUAL', Race: 'RACE' };
-                  const openf1Map = { FirstPractice: 'Practice 1', Qualifying: 'Qualifying', Race: 'Race' };
-                  
-                  let sessionEndObj = null;
-                  if (openf1Sessions && openf1Sessions.length > 0) {
-                     const f1Session = openf1Sessions.find((s: any) => s.session_name === openf1Map[session as keyof typeof openf1Map]);
-                     if (f1Session && f1Session.date_end) {
-                        sessionEndObj = new Date(f1Session.date_end);
-                     }
-                  }
-                  
-                  const now = new Date();
-                  
-                  // Use OpenF1 date_end if available, otherwise fallback to start + 2 hours
-                  const endTimeMs = sessionEndObj ? sessionEndObj.getTime() : (sessionDateObj ? sessionDateObj.getTime() + (2 * 3600 * 1000) : 0);
-                  
-                  // A session is considered "Live" until its exact end time
-                  const isLive = sessionDateObj ? now.getTime() >= sessionDateObj.getTime() && now.getTime() < endTimeMs : false;
-                  // A session is considered "Done" strictly after its exact end time
-                  const isDone = sessionDateObj ? now.getTime() >= endTimeMs : false;
-                  
-                  return (
-                    <div key={session} className={`flex flex-col transition-all duration-500 ${isDone ? 'opacity-40 grayscale' : 'opacity-100'}`}>
-                       <div className="flex items-center gap-2 mb-1">
-                         <span className={`text-[10px] font-bold uppercase tracking-wider ${isDone ? 'text-muted-foreground' : 'text-primary'}`}>
-                           {labels[session as keyof typeof labels]}
-                         </span>
-                         {isLive && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-                         )}
-                       </div>
-                       <span className={`text-lg font-bold ${isDone ? 'text-muted-foreground line-through decoration-muted-foreground/30' : (isLive ? 'text-primary' : 'text-foreground')}`}>
-                         {time}
-                       </span>
-                    </div>
-                  )
-                })}
-              </div>
+              <SessionTracker sessions={sessionList} />
 
               {/* Weather & Tyres */}
               <div className="flex flex-col gap-5">
@@ -215,21 +177,7 @@ export default async function Home() {
                 </div>
                 <div className="flex flex-col mt-2">
                   <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Compounds</span>
-                  <div className="flex gap-2">
-                    {displayCircuitStats.tyres.length > 0 ? displayCircuitStats.tyres.map((tyre: string, idx: number) => {
-                       const colorClass = idx === 0 ? 'bg-white text-black border-gray-300' 
-                                        : idx === 1 ? 'bg-yellow-400 text-black border-yellow-500' 
-                                        : 'bg-red-500 text-white border-red-600';
-                       const label = idx === 0 ? 'Hard' : idx === 1 ? 'Medium' : 'Soft';
-                       return (
-                         <div key={tyre} className={`flex items-center justify-center w-8 h-8 rounded-full border-2 font-black text-[10px] shadow-md ${colorClass}`} title={`${label} (${tyre})`}>
-                           {tyre}
-                         </div>
-                       );
-                    }) : (
-                      <span className="text-sm font-medium text-muted-foreground">Info not available</span>
-                    )}
-                  </div>
+                  <TyreBadges tyres={displayCircuitStats.tyres} />
                 </div>
               </div>
 
@@ -254,7 +202,7 @@ export default async function Home() {
 
           </div>
 
-          {/* RIGHT SIDE: Track Layout (Massive, touching the edge) */}
+          {/* RIGHT SIDE: Track Layout */}
           <div className="w-full lg:w-[55%] h-[50vh] lg:h-[100vh] flex items-center justify-center relative pointer-events-none">
              <div className="w-full h-full scale-110 lg:scale-[1.3] transform origin-center -translate-y-12 lg:-translate-y-24">
                 <TrackLayoutWidget raceName={nextRace?.raceName || ''} circuitId={nextRace?.Circuit?.circuitId} />
@@ -289,111 +237,23 @@ export default async function Home() {
               </h2>
             </div>
 
-            {/* Compact Podium */}
             <div className="bg-card/30 border border-border/30 rounded-3xl p-6 shadow-xl backdrop-blur-sm">
                <h3 className="text-xs font-semibold mb-6 text-muted-foreground uppercase tracking-[0.3em] text-center">Podium</h3>
-               {lastRacePodium && lastRacePodium.length > 0 ? (
-                 <div className="flex justify-center items-end h-40 max-w-lg mx-auto gap-2 lg:gap-4">
-                    {/* P2 */}
-                    <div className="flex flex-col items-center w-1/3 group">
-                       <span className="text-lg lg:text-xl font-black text-muted-foreground mb-2 group-hover:text-foreground transition-colors truncate">{lastRacePodium[1]?.Driver?.familyName}</span>
-                       <div className="w-full bg-slate-300/10 h-24 rounded-t-xl border-t-4 border-slate-300 flex items-center justify-center text-2xl font-black text-slate-300 transition-all group-hover:bg-slate-300/20">2</div>
-                    </div>
-                    {/* P1 */}
-                    <div className="flex flex-col items-center w-1/3 z-10 group">
-                       <span className="text-xl lg:text-2xl font-black text-primary mb-2 group-hover:text-white transition-colors truncate">{lastRacePodium[0]?.Driver?.familyName}</span>
-                       <div className="w-full bg-yellow-500/10 h-32 rounded-t-xl border-t-4 border-yellow-500 flex items-center justify-center text-4xl font-black text-yellow-500 shadow-[0_0_20px_rgba(234,179,8,0.2)] transition-all group-hover:bg-yellow-500/20">1</div>
-                    </div>
-                    {/* P3 */}
-                    <div className="flex flex-col items-center w-1/3 group">
-                       <span className="text-lg lg:text-xl font-black text-muted-foreground mb-2 group-hover:text-foreground transition-colors truncate">{lastRacePodium[2]?.Driver?.familyName}</span>
-                       <div className="w-full bg-amber-600/10 h-16 rounded-t-xl border-t-4 border-amber-600 flex items-center justify-center text-2xl font-black text-amber-600 transition-all group-hover:bg-amber-600/20">3</div>
-                    </div>
-                 </div>
-               ) : (
-                 <div className="text-sm text-muted-foreground text-center py-6">No podium data</div>
-               )}
+               <CompactPodium podium={lastRacePodium} />
             </div>
 
-            {/* Race Facts Grid */}
-            <div className="grid grid-cols-2 gap-4 mt-2">
-              <div className="bg-card/30 border border-border/30 rounded-2xl p-5 flex flex-col justify-center">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Fastest Lap</span>
-                <span className="text-xl font-black text-foreground">{prevFastestLapTime}</span>
-                <span className="text-sm font-medium text-muted-foreground">{prevFastestLapDriver}</span>
-              </div>
-              <div className="bg-card/30 border border-border/30 rounded-2xl p-5 flex flex-col justify-center">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Fastest Pit Stop</span>
-                <span className="text-xl font-black text-foreground">{fastestPitTime}</span>
-                <span className="text-sm font-medium text-muted-foreground">{fastestPitDriver}</span>
-              </div>
-              <div className="bg-card/30 border border-border/30 rounded-2xl p-5 flex flex-col justify-center">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Driver of the Day</span>
-                <span className="text-lg font-black text-foreground mt-1">{prevDriverOfDay}</span>
-              </div>
-              <div className="bg-card/30 border border-border/30 rounded-2xl p-5 flex flex-col justify-center">
-                <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider mb-2">Pole Position</span>
-                <span className="text-lg font-black text-foreground mt-1">{prevPolePosition}</span>
-              </div>
-            </div>
-
+            <RaceFactsWidget 
+               fastestLapTime={prevFastestLapTime}
+               fastestLapDriver={prevFastestLapDriver}
+               fastestPitTime={fastestPitTime}
+               fastestPitDriver={fastestPitDriver}
+               driverOfDay={prevDriverOfDay}
+               polePosition={prevPolePosition}
+            />
           </div>
 
           {/* RIGHT SIDE: Full Classification */}
-          <div className="w-full lg:w-[55%] h-[80vh] flex flex-col relative border border-border/30 rounded-3xl bg-card/20 backdrop-blur-xl overflow-hidden shadow-2xl">
-             
-             {/* Header */}
-             <div className="w-full px-8 py-6 border-b border-border/30 bg-card/40 flex items-center justify-between sticky top-0 z-20 backdrop-blur-xl">
-               <h3 className="text-sm font-bold tracking-widest uppercase text-foreground">Race Classification</h3>
-               <span className="text-xs font-semibold text-muted-foreground uppercase">{lastRace?.date}</span>
-             </div>
-
-             {/* List */}
-             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                <div className="flex flex-col gap-2">
-                  {lastRace?.Results?.map((result: any) => (
-                    <div key={result.position} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-card/40 transition-colors border border-transparent hover:border-border/50 group">
-                      
-                      {/* Position */}
-                      <div className="w-8 flex justify-center">
-                        <span className="text-xl font-black text-muted-foreground group-hover:text-foreground transition-colors">
-                          {result.position}
-                        </span>
-                      </div>
-
-                      {/* Constructor Logo Placeholder */}
-                      <div className="w-10 h-10 rounded-full bg-muted/50 border border-border flex items-center justify-center shrink-0">
-                         {/* TODO: Add actual logo images here */}
-                         <span className="text-[10px] font-bold text-muted-foreground uppercase">{result.Constructor.constructorId.substring(0,3)}</span>
-                      </div>
-
-                      {/* Driver & Constructor */}
-                      <div className="flex-1 min-w-0">
-                         <div className="flex items-baseline gap-2 truncate">
-                           <span className="text-lg font-bold text-foreground truncate">{result.Driver.givenName} {result.Driver.familyName}</span>
-                         </div>
-                         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate block">
-                           {result.Constructor.name}
-                         </span>
-                      </div>
-
-                      {/* Time / Status */}
-                      <div className="text-right">
-                         <span className="block text-sm font-bold text-foreground">
-                           {result.Time ? result.Time.time : result.status}
-                         </span>
-                         <span className="block text-[10px] font-bold text-primary uppercase mt-1">
-                           {result.points > 0 ? `+${result.points} PTS` : '0 PTS'}
-                         </span>
-                      </div>
-
-                    </div>
-                  ))}
-                </div>
-             </div>
-
-          </div>
-
+          <ClassificationList results={lastRace?.Results} date={lastRace?.date} />
         </div>
       </section>
 
