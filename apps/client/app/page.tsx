@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import TrackLayoutWidget from '../components/TrackLayoutWidget';
 import SessionTracker from '../components/SessionTracker';
 import TyreBadges from '../components/TyreBadges';
@@ -28,8 +29,24 @@ async function getDashboardData() {
   }
 }
 
+async function getNewsData() {
+  try {
+    const res = await fetch('http://localhost:5000/api/news', {
+      next: { revalidate: 60 }
+    });
+    if (!res.ok) throw new Error('Failed to fetch news');
+    return res.json();
+  } catch (error) {
+    console.error('Error fetching news:', error);
+    return null;
+  }
+}
+
 export default async function Home() {
-  const data = await getDashboardData();
+  const [data, newsData] = await Promise.all([
+    getDashboardData(),
+    getNewsData()
+  ]);
 
   if (!data) {
     return <div className="p-8 text-center text-destructive">Failed to load dashboard data. Ensure backend is running.</div>;
@@ -38,6 +55,10 @@ export default async function Home() {
   const { nextRace, lastRace, lastRacePodium, weather, fastestPitStop, lastRaceQualifying, circuitStats, tyres, driverOfTheDay, openf1Sessions } = data;
 
   const daysToRace = getDaysToRace(nextRace?.date, nextRace?.time);
+  
+  // Check if today is strictly the race day by matching the date strings
+  const todayIsoString = new Date().toISOString().split('T')[0];
+  const isRaceDay = nextRace?.date === todayIsoString;
 
   // Process Previous Race Facts
   let prevFastestLapDriver = 'Info not available';
@@ -149,14 +170,22 @@ export default async function Home() {
                 {nextRace?.Circuit?.circuitName}
               </h3>
               
-              <div className="flex items-end gap-4 mb-6">
-                 <div className="text-8xl lg:text-9xl font-black tabular-nums tracking-tighter text-foreground drop-shadow-2xl leading-none">
-                    {daysToRace}
-                 </div>
-                 <div className="text-sm lg:text-base text-muted-foreground uppercase tracking-[0.3em] font-bold pb-2">
-                   Days<br/>Remaining
-                 </div>
-              </div>
+              {isRaceDay ? (
+                <div className="flex items-end gap-4 mb-6">
+                  <div className="text-5xl lg:text-7xl font-black uppercase tracking-tighter text-primary drop-shadow-2xl leading-none animate-pulse">
+                     It's Race Day
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-end gap-4 mb-6">
+                   <div className="text-8xl lg:text-9xl font-black tabular-nums tracking-tighter text-foreground drop-shadow-2xl leading-none">
+                      {daysToRace}
+                   </div>
+                   <div className="text-sm lg:text-base text-muted-foreground uppercase tracking-[0.3em] font-bold pb-2">
+                     Days<br/>Remaining
+                   </div>
+                </div>
+              )}
             </div>
 
             {/* Circuit Information Grid */}
@@ -256,6 +285,61 @@ export default async function Home() {
           <ClassificationList results={lastRace?.Results} date={lastRace?.date} />
         </div>
       </section>
+
+      {/* LATEST NEWS SECTION */}
+      {newsData?.news && newsData.news.length > 0 && (
+        <section className="relative w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] -ml-4 md:-ml-8 flex flex-col items-center pl-8 sm:pl-12 lg:pl-24 pr-8 lg:pr-24 py-16 lg:py-24 bg-background">
+          <div className="w-full flex flex-col gap-10">
+            {/* Section Header */}
+            <div className="flex items-center justify-between w-full">
+               <div className="flex flex-col">
+                  <div className="flex items-center gap-3 mb-2">
+                     <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                     <span className="text-sm font-bold uppercase tracking-widest text-primary">Latest</span>
+                  </div>
+                  <h2 className="text-4xl lg:text-5xl font-black uppercase tracking-tighter">Paddock News</h2>
+               </div>
+            </div>
+
+            {/* News Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {newsData.news.slice(0, 4).map((article: any, index: number) => (
+                <a 
+                  key={index} 
+                  href={article.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="group relative overflow-hidden rounded-3xl block shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 border border-border/20 aspect-[4/5] sm:aspect-square lg:aspect-[4/5] col-span-1"
+                >
+                  <div 
+                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 group-hover:scale-110"
+                    style={{ backgroundImage: `url(${article.imageUrl})` }}
+                  />
+                  <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black via-black/80 to-transparent backdrop-blur-[2px]"></div>
+                  <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col justify-end">
+                    <span className="px-2 py-1 text-[9px] font-black uppercase tracking-wider text-white bg-primary rounded-sm shadow-md mb-3 w-fit">
+                      {article.source}
+                    </span>
+                    <h3 className="text-lg font-black tracking-tight text-white leading-tight group-hover:text-primary transition-colors duration-300 line-clamp-4">
+                      {article.title}
+                    </h3>
+                  </div>
+                </a>
+              ))}
+            </div>
+
+            {/* View All Button */}
+            <div className="flex justify-center mt-4">
+               <Link href="/news" className="group flex items-center gap-2 px-6 py-3 rounded-full bg-card hover:bg-white/10 border border-border/40 transition-all shadow-md hover:shadow-lg backdrop-blur-md">
+                 <span className="text-sm font-bold uppercase tracking-widest text-foreground group-hover:text-primary transition-colors">View All News</span>
+                 <svg className="w-4 h-4 text-primary group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                 </svg>
+               </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
     </div>
   );

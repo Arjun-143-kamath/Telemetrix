@@ -51,16 +51,14 @@ export default async function NewsPage() {
           No news available at the moment. Check back later.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6 grid-flow-dense">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8 grid-flow-dense">
           {articles.map((article: any, index: number) => {
             let spanClasses = 'col-span-1 row-span-1';
             let isHero = false;
 
-            // Make the first article always large (Hero)
-            // Also make boxes large if the headline is long (e.g., > 60 chars) to prevent cramped text
-            const isLongHeadline = article.title.length > 60;
-
-            if (index === 0 || isLongHeadline) {
+            // Make the first article and one in the middle large (Hero)
+            const middleIndex = Math.floor(articles.length / 2);
+            if (index === 0 || (index === middleIndex && articles.length > 4)) {
               spanClasses = 'col-span-1 sm:col-span-2 sm:row-span-2';
               isHero = true;
             }
