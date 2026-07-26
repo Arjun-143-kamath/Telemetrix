@@ -3,6 +3,9 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import Tabs from '../../../components/ui/Tabs';
+import Card from '../../../components/ui/Card';
+import EmptyState from '../../../components/ui/EmptyState';
 import TyreBadges from '../../../components/TyreBadges';
 import AnimatedPodium from '../../../components/AnimatedPodium';
 import { formatDate } from '../../../utils/time';
@@ -86,37 +89,29 @@ export default function RaceDetailsPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex overflow-x-auto gap-2 bg-black/20 p-2 rounded-xl backdrop-blur-md border border-border/20 hide-scrollbar">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[100px] py-3 px-4 rounded-lg text-sm font-bold uppercase tracking-wider transition-all ${
-              activeTab === tab.id 
-                ? 'bg-primary text-white shadow-[0_0_15px_rgba(253,38,92,0.5)]' 
-                : 'text-muted-foreground hover:bg-white/5 hover:text-white'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <Tabs 
+        options={tabs}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        layoutId="calendarSessionTabIndicator"
+        containerClassName="w-full flex justify-between md:justify-center items-center overflow-x-auto no-scrollbar gap-2 mb-2 bg-secondary/10 p-1.5 rounded-full border border-border/10 relative"
+      />
 
       {/* Extra Cards (Race Only) */}
       {activeTab === 'race' && hasClassification && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-           <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+           <Card className="items-center justify-center text-center">
              <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest mb-1">Driver of the Day</span>
              <span className="text-2xl font-black text-primary">{currentSessionData.driverOfTheDay || 'Info not available'}</span>
-           </div>
-           <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+           </Card>
+           <Card className="items-center justify-center text-center">
              <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest mb-1">Fastest Pitstop</span>
              <span className="text-2xl font-black text-blue-400">
                {currentSessionData.fastestPitstop 
                  ? `${currentSessionData.fastestPitstop.pit_duration}s (${currentSessionData.fastestPitstop.driver_number})` 
                  : 'Info not available'}
              </span>
-           </div>
+           </Card>
         </div>
       )}
 
@@ -124,9 +119,7 @@ export default function RaceDetailsPage() {
       <div className="flex flex-col gap-8 mt-4">
         
         {!hasClassification ? (
-          <div className="bg-card/40 border border-border/40 rounded-2xl p-12 text-center text-muted-foreground">
-            Data not available for this session yet.
-          </div>
+          <EmptyState title="Data not available for this session yet." />
         ) : (
           <>
             {/* Podium */}

@@ -4,43 +4,43 @@
 
 @layer base {
   :root {
-    /* Bottom Color: Dark Navy */
-    --background: 217 70% 10%;
-    --foreground: 210 40% 98%;
+    /* Near-black background */
+    --background: 0 0% 4%;
+    --foreground: 0 0% 88%;
     
-    /* Slightly lighter Navy for cards */
-    --card: 217 70% 14%;
-    --card-foreground: 210 40% 98%;
+    /* Slightly lighter for cards */
+    --card: 0 0% 7%;
+    --card-foreground: 0 0% 88%;
     
-    --popover: 217 70% 14%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 7%;
+    --popover-foreground: 0 0% 88%;
     
-    /* Top Color: Vibrant Pinkish-Red */
-    --primary: 345 98% 57%; 
-    --primary-foreground: 0 0% 100%;
+    /* F1 Red Accent */
+    --primary: 358 100% 44%; 
+    --primary-foreground: 0 0% 88%;
     
-    /* Upper Middle Color: Deep Maroon */
-    --secondary: 342 64% 31%;
-    --secondary-foreground: 210 40% 98%;
+    /* Monochromatic secondary elements */
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 88%;
     
-    /* Lower Middle Color: Dark Purple (Made Darker) */
-    --muted: 297 40% 11%;
-    --muted-foreground: 215 20.2% 75.1%;
+    /* Monochromatic muted elements */
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
     
-    --accent: 297 40% 11%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 88%;
     
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 88%;
     
-    --border: 217 30% 25%;
-    --input: 217 30% 25%;
-    --ring: 345 98% 57%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 358 100% 44%;
     --radius: 0.5rem;
 
     --success: 142 71% 45%;
     --warning: 48 96% 53%;
-    --danger: 345 98% 57%;
+    --danger: 358 100% 44%;
   }
 }
 
@@ -57,4 +57,19 @@
 /* Glassmorphism utility */
 .glass {
   @apply bg-background/60 backdrop-blur-md border border-border shadow-sm;
+}
+
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar,
+  .custom-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar,
+  .custom-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
 }

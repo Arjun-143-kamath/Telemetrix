@@ -12,7 +12,7 @@ import { Metadata } from 'next';
 export const revalidate = 60; // 1 minute
 
 export const metadata: Metadata = {
-  title: 'Dashboard | Telemetrix',
+  title: 'Home | Telemetrix',
   description: 'Live F1 dashboard featuring race countdowns, weather, track stats, and live timing data.',
 };
 

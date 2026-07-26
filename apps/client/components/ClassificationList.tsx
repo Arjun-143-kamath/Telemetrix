@@ -19,6 +19,9 @@ interface ClassificationResult {
   Driver: Driver;
   Constructor: Constructor;
   Time?: Time;
+  Q1?: string;
+  Q2?: string;
+  Q3?: string;
   status: string;
   points: string;
 }
@@ -26,61 +29,112 @@ interface ClassificationResult {
 interface ClassificationListProps {
   results: ClassificationResult[];
   date?: string;
+  sessionType?: string;
 }
 
-export default function ClassificationList({ results, date }: ClassificationListProps) {
+export default function ClassificationList({ results, date, sessionType }: ClassificationListProps) {
   if (!results || results.length === 0) {
     return <div className="p-8 text-center text-muted-foreground">Classification data not available</div>;
   }
 
+  const isRace = sessionType === 'race';
+  const isQuali = sessionType === 'quali';
+  const headerTitle = isRace ? 'Race Classification' : isQuali ? 'Qualifying Classification' : 'Practice Classification';
+
   return (
-    <div className="w-full lg:w-[55%] h-[80vh] flex flex-col relative border border-border/30 rounded-3xl bg-card/20 backdrop-blur-xl overflow-hidden shadow-2xl">
+    <div className="w-full h-[80vh] flex flex-col relative border border-border/10 rounded-[2rem] bg-[#0a0a0a] overflow-hidden shadow-2xl">
       {/* Header */}
-      <div className="w-full px-8 py-6 border-b border-border/30 bg-card/40 flex items-center justify-between sticky top-0 z-20 backdrop-blur-xl">
-        <h3 className="text-sm font-bold tracking-widest uppercase text-foreground">Race Classification</h3>
-        <span className="text-xs font-semibold text-muted-foreground uppercase">{date}</span>
+      <div className="w-full flex flex-col sticky top-0 z-20 bg-[#0a0a0a] pb-2 pt-6">
+        {/* Column Headings */}
+        <div className="flex items-center gap-4 px-6 text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2 border-b border-border/10 pb-4">
+           <div className="w-8 text-left pl-2">POS</div>
+           <div className="w-8 text-center">NO</div>
+           <div className="flex-1 min-w-0">DRIVER</div>
+           <div className="w-1/4">CONSTRUCTOR</div>
+           <div className="text-right flex items-center gap-6">
+              {isQuali ? (
+                <div className="flex items-center gap-4">
+                  <div className="w-20 text-right">Q1</div>
+                  <div className="w-20 text-right">Q2</div>
+                  <div className="w-20 text-right">Q3</div>
+                </div>
+              ) : (
+                <div className="w-24 text-right">TIME / GAP</div>
+              )}
+              {isRace && <div className="w-16 text-center">POINTS</div>}
+           </div>
+        </div>
       </div>
 
       {/* List */}
-      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-        <div className="flex flex-col gap-2">
-          {results.map((result) => (
-            <div key={result.position} className="flex items-center gap-4 p-4 rounded-2xl hover:bg-card/40 transition-colors border border-transparent hover:border-border/50 group">
+      <div className="flex-1 overflow-y-auto px-2 pb-4 custom-scrollbar">
+        <div className="flex flex-col">
+          {results.map((result, index) => {
+            const posNum = parseInt(result.position);
+            
+            // Badge logic for top 3 positions
+            let posBadge = <span className="text-sm font-black text-gray-300">{result.position}</span>;
+            if (posNum === 1) {
+               posBadge = <div className="bg-yellow-600/30 text-yellow-500 w-6 h-6 rounded flex items-center justify-center text-xs font-black shadow-[0_0_10px_rgba(234,179,8,0.1)]">1</div>;
+            } else if (posNum === 2) {
+               posBadge = <div className="bg-gray-500/30 text-gray-300 w-6 h-6 rounded flex items-center justify-center text-xs font-black">2</div>;
+            } else if (posNum === 3) {
+               posBadge = <div className="bg-orange-800/40 text-orange-500 w-6 h-6 rounded flex items-center justify-center text-xs font-black">3</div>;
+            }
+
+            return (
+            <div 
+              key={result.position} 
+              className={`flex items-center gap-4 px-4 py-3 hover:bg-white/5 transition-colors group ${index !== results.length - 1 ? 'border-b border-border/5' : ''}`}
+            >
               
               {/* Position */}
-              <div className="w-8 flex justify-center">
-                <span className="text-xl font-black text-muted-foreground group-hover:text-foreground transition-colors">
-                  {result.position}
-                </span>
+              <div className="w-8 flex items-center pl-2">
+                {posBadge}
               </div>
 
-              {/* Constructor Logo Placeholder */}
-              <div className="w-10 h-10 rounded-full bg-muted/50 border border-border flex items-center justify-center shrink-0">
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase">{result.Constructor.constructorId.substring(0,3)}</span>
+              {/* Number (Using constructor ID first char + random or actual number if available in API) */}
+              {/* Note: the scraper doesn't fetch driver number currently, so I'll just use a placeholder or derived number for aesthetics */}
+              <div className="w-8 text-center text-[10px] text-muted-foreground font-medium">
+                 {/* As a placeholder for now since we don't have driver numbers in the ClassificationResult interface */}
+                 {result.position}
               </div>
 
-              {/* Driver & Constructor */}
-              <div className="flex-1 min-w-0">
-                  <div className="flex items-baseline gap-2 truncate">
-                    <span className="text-lg font-bold text-foreground truncate">{result.Driver.givenName} {result.Driver.familyName}</span>
-                  </div>
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider truncate block">
-                    {result.Constructor.name}
-                  </span>
+              {/* Driver */}
+              <div className="flex-1 min-w-0 flex items-baseline gap-2">
+                 <span className="text-sm font-bold text-gray-200 truncate">{result.Driver.givenName} {result.Driver.familyName}</span>
+                 <span className="text-[9px] text-muted-foreground">{result.position}</span>
+              </div>
+              
+              {/* Constructor */}
+              <div className="w-1/4">
+                 <span className="text-xs font-medium text-muted-foreground tracking-wider truncate block">
+                   {result.Constructor.name}
+                 </span>
               </div>
 
-              {/* Time / Status */}
-              <div className="text-right">
-                  <span className="block text-sm font-bold text-foreground">
-                    {result.Time ? result.Time.time : result.status}
-                  </span>
-                  <span className="block text-[10px] font-bold text-primary uppercase mt-1">
-                    {parseInt(result.points) > 0 ? `+${result.points} PTS` : '0 PTS'}
-                  </span>
+              {/* Times / Status */}
+              <div className="text-right flex items-center gap-6">
+                  {isQuali ? (
+                     <div className="flex items-center gap-4 text-xs font-mono text-gray-400">
+                        <span className="w-20 text-right">{result.Q1 || '-'}</span>
+                        <span className="w-20 text-right">{result.Q2 || '-'}</span>
+                        <span className="w-20 text-right text-red-500">{result.Q3 || '-'}</span>
+                     </div>
+                  ) : (
+                     <span className="block w-24 text-xs font-mono text-gray-400 text-right">
+                       {result.Time ? result.Time.time : result.status}
+                     </span>
+                  )}
+                  {isRace && (
+                    <span className="block w-16 text-xs font-bold text-red-600 text-center">
+                      {parseInt(result.points) > 0 ? result.points : '0'}
+                    </span>
+                  )}
               </div>
 
             </div>
-          ))}
+          )})}
         </div>
       </div>
     </div>

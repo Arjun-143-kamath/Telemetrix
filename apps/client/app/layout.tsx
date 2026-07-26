@@ -52,16 +52,16 @@ export default function RootLayout({
         <header className="w-full bg-card/80 backdrop-blur-md border-b border-border sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 rounded-full bg-transparent border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(253,38,92,0.5)]">
+            <Link href="/" className="flex items-center space-x-3 cursor-pointer group">
+              <div className="w-6 h-6 rounded-full bg-transparent border-2 border-primary flex items-center justify-center shadow-[0_0_10px_rgba(253,38,92,0.5)] group-hover:shadow-[0_0_15px_rgba(253,38,92,0.8)] transition-all">
                 <div className="w-2 h-2 rounded-full bg-primary" />
               </div>
-              <h1 className="text-lg font-semibold tracking-widest text-foreground hidden sm:block">TELEMETRIX</h1>
-            </div>
+              <h1 className="text-lg font-semibold tracking-widest text-foreground hidden sm:block group-hover:text-primary transition-colors">TELEMETRIX</h1>
+            </Link>
 
             {/* Navigation Links */}
             <nav className="flex space-x-1 md:space-x-4">
-              <Link href="/">
+              <Link href="/dashboard">
                 <div className="px-3 py-2 text-muted-foreground hover:bg-accent/30 hover:text-foreground rounded-md cursor-pointer text-sm font-medium transition-colors">
                   Dashboard
                 </div>

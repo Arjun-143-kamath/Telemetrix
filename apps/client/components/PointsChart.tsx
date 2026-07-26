@@ -3,8 +3,22 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function PointsChart({ data, drivers }: { data: any[], drivers: any[] }) {
-  // Use distinct F1-style colors for the lines
-  const colors = ['#00d2be', '#0600ef', '#dc0000', '#ff8700', '#2293d1'];
+  // Map constructor IDs to their official F1 colors
+  const getConstructorColor = (constructorId?: string) => {
+    const colors: Record<string, string> = {
+      red_bull: '#3671C6',
+      mercedes: '#27F4D2',
+      ferrari: '#E80020',
+      mclaren: '#FF8000',
+      aston_martin: '#229971',
+      alpine: '#0093cc',
+      williams: '#64C4FF',
+      rb: '#6692FF',
+      sauber: '#52E252',
+      haas: '#B6BABD',
+    };
+    return constructorId ? (colors[constructorId] || '#ffffff') : '#ffffff';
+  };
 
   return (
     <div className="w-full h-full min-h-[300px]">
@@ -31,13 +45,13 @@ export default function PointsChart({ data, drivers }: { data: any[], drivers: a
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
           
-          {drivers.map((driver, index) => (
+          {drivers.map((driver) => (
             <Line 
               key={driver.Driver.driverId}
               type="monotone" 
               dataKey={driver.Driver.driverId} 
               name={driver.Driver.familyName}
-              stroke={colors[index % colors.length]} 
+              stroke={getConstructorColor(driver.Constructors?.[0]?.constructorId)} 
               strokeWidth={3}
               dot={{ r: 4, strokeWidth: 2 }}
               activeDot={{ r: 6 }}

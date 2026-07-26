@@ -211,3 +211,68 @@ export const getCircuitStats = async (circuitId: string) => {
     }
   }, 3600 * 24 * 7); // Cache for 7 days (historical records change rarely)
 };
+
+export const getPreviousFormAtCircuit = async (circuitId: string, currentSeason: string) => {
+  return withCache(`prev_form_${circuitId}_${currentSeason}`, async () => {
+    try {
+      // 1. Get all races at this circuit
+      const racesRes = await axios.get(`${JOLPICA_BASE_URL}/circuits/${circuitId}/races.json?limit=100`);
+      const allRaces = racesRes.data.MRData.RaceTable.Races || [];
+      
+      // 2. Find the most recent race before current season
+      const currentYear = parseInt(currentSeason);
+      
+      let latestPrevRace = null;
+      let highestPrevYear = 0;
+      
+      for (const race of allRaces) {
+        const raceYear = parseInt(race.season);
+        if (raceYear < currentYear && raceYear > highestPrevYear) {
+          highestPrevYear = raceYear;
+          latestPrevRace = race;
+        }
+      }
+      
+      // 3. If no previous race, return null (it's a new track)
+      if (!latestPrevRace) return null;
+      
+      const { season, round } = latestPrevRace;
+      
+      // 4. Fetch Results and Qualifying for that specific race
+      const [resultsRes, qualyRes] = await Promise.allSettled([
+        axios.get(`${JOLPICA_BASE_URL}/${season}/${round}/results.json`),
+        axios.get(`${JOLPICA_BASE_URL}/${season}/${round}/qualifying.json`)
+      ]);
+      
+      let winnerInfo = 'Info not available';
+      let poleInfo = 'Info not available';
+      
+      if (resultsRes.status === 'fulfilled') {
+         const results = resultsRes.value.data.MRData.RaceTable.Races[0]?.Results;
+         if (results && results.length > 0) {
+            const winner = results[0];
+            winnerInfo = `${winner.Driver.givenName.charAt(0)}. ${winner.Driver.familyName} (${winner.Time?.time || 'N/A'})`;
+         }
+      }
+      
+      if (qualyRes.status === 'fulfilled') {
+         const qualy = qualyRes.value.data.MRData.RaceTable.Races[0]?.QualifyingResults;
+         if (qualy && qualy.length > 0) {
+            const pole = qualy[0];
+            poleInfo = `${pole.Driver.givenName.charAt(0)}. ${pole.Driver.familyName} (${pole.Q3 || pole.Q2 || pole.Q1 || 'N/A'})`;
+         }
+      }
+      
+      return {
+         year: season,
+         winner: winnerInfo,
+         pole: poleInfo
+      };
+      
+    } catch (error) {
+      console.error('Error fetching previous form at circuit:', error);
+      return null;
+    }
+  }, 3600 * 24 * 7); // Cache for 7 days
+};
+
