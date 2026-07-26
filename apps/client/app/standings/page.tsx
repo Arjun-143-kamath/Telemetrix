@@ -1,5 +1,6 @@
 import PointsChart from '../../components/PointsChart';
 import { Metadata } from 'next';
+import GsapFadeIn from '../../components/ui/GsapFadeIn';
 
 export const revalidate = 60; // 1 minute
 
@@ -32,7 +33,7 @@ export default async function StandingsPage() {
   const topDrivers = driverStandings?.slice(0, 5) || [];
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <GsapFadeIn className="max-w-7xl mx-auto flex flex-col gap-6" duration={0.7} yOffset={30}>
       
       {/* Achievements Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -144,6 +145,6 @@ export default async function StandingsPage() {
 
       </div>
 
-    </div>
+    </GsapFadeIn>
   );
 }

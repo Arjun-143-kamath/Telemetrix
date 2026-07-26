@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Tabs from '../ui/Tabs';
 import Card from '../ui/Card';
 import EmptyState from '../ui/EmptyState';
+import GsapFadeIn from '../ui/GsapFadeIn';
 import TyreBadges from '../TyreBadges';
 import CompactPodium from '../CompactPodium';
 import ClassificationList from '../ClassificationList';
@@ -71,7 +72,7 @@ export default function SessionResultsTab({ data }: SessionResultsTabProps) {
   const displayResults = sessionHasData;
 
   return (
-    <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-500 mt-4 min-h-[60vh] max-w-7xl mx-auto">
+    <GsapFadeIn className="w-full flex flex-col mt-4 min-h-[60vh] max-w-7xl mx-auto" duration={0.5} yOffset={20}>
       
       {/* 1. Header (Race Name, Track, Date, Tyres) */}
       <div className="flex flex-col md:flex-row items-start md:items-end justify-between w-full border-b border-border/20 pb-6 mb-8">
@@ -141,6 +142,6 @@ export default function SessionResultsTab({ data }: SessionResultsTabProps) {
             
          </div>
       )}
-    </div>
+    </GsapFadeIn>
   );
 }

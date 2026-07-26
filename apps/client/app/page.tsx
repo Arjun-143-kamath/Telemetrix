@@ -8,6 +8,7 @@ import RaceFactsWidget from '../components/RaceFactsWidget';
 import ClassificationList from '../components/ClassificationList';
 import { getDaysToRace } from '../utils/time';
 import { Metadata } from 'next';
+import GsapFadeIn from '../components/ui/GsapFadeIn';
 
 export const revalidate = 60; // 1 minute
 
@@ -141,7 +142,7 @@ export default async function Home() {
   });
 
   return (
-    <div className="w-full flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <GsapFadeIn className="w-full flex flex-col" duration={0.7} yOffset={30}>
       
       {/* FULL SCREEN HERO: Next Race Information */}
       <section className="relative w-[calc(100%+2rem)] md:w-[calc(100%+4rem)] h-[100vh] min-h-[100vh] -mt-4 md:-mt-8 -ml-4 md:-ml-8 flex items-stretch overflow-hidden pl-8 sm:pl-12 lg:pl-24 pr-8 sm:pr-12 lg:pr-24">
@@ -340,7 +341,6 @@ export default async function Home() {
           </div>
         </section>
       )}
-
-    </div>
+    </GsapFadeIn>
   );
 }

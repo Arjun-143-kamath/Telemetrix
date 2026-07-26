@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Image from 'next/image';
+import GsapFadeIn from '../../components/ui/GsapFadeIn';
 
 export const revalidate = 60; // Cache for 1 minute
 
@@ -31,7 +32,7 @@ export default async function NewsPage() {
   const articles = data.news;
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto flex flex-col animate-in fade-in slide-in-from-bottom-4 duration-700 pb-24 px-4 sm:px-8 lg:px-12">
+    <GsapFadeIn className="w-full max-w-[1600px] mx-auto flex flex-col pb-24 px-4 sm:px-8 lg:px-12" duration={0.7} yOffset={30}>
       
       {/* Header */}
       <div className="flex flex-col gap-2 mb-10 mt-8">
@@ -96,6 +97,6 @@ export default async function NewsPage() {
           })}
         </div>
       )}
-    </div>
+    </GsapFadeIn>
   );
 }

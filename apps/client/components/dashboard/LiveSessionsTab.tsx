@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Card from '../ui/Card';
+import SectionHeader from '../ui/SectionHeader';
+import GsapFadeIn from '../ui/GsapFadeIn';
 
 interface LiveSessionsTabProps {
   data: any;
@@ -55,7 +57,7 @@ export default function LiveSessionsTab({ data }: LiveSessionsTabProps) {
   };
 
   return (
-    <div className="w-full flex flex-col items-center justify-center animate-in fade-in zoom-in duration-500 min-h-[50vh]">
+    <GsapFadeIn className="w-full flex flex-col items-center justify-center min-h-[50vh]" duration={0.5} yOffset={0}>
       
       {liveSession ? (
         <div className="w-full flex flex-col items-center gap-6">
@@ -103,6 +105,6 @@ export default function LiveSessionsTab({ data }: LiveSessionsTabProps) {
         </div>
       )}
 
-    </div>
+    </GsapFadeIn>
   );
 }

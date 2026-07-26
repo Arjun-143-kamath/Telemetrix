@@ -4,6 +4,7 @@ import * as cheerio from 'cheerio';
 interface F1Driver {
   givenName: string;
   familyName: string;
+  permanentNumber?: string;
 }
 
 interface F1Constructor {
@@ -17,6 +18,7 @@ interface F1Time {
 
 export interface F1ClassificationResult {
   position: string;
+  number?: string;
   Driver: F1Driver;
   Constructor: F1Constructor;
   Time?: F1Time;
@@ -192,7 +194,8 @@ export const getF1SessionResults = async (season: string, round: string, session
 
             results.push({
                 position: position || "",
-                Driver: { givenName: firstName || "", familyName: lastName || "" },
+                number: number || "",
+                Driver: { givenName: firstName || "", familyName: lastName || "", permanentNumber: number || "" },
                 Constructor: { constructorId: teamName.toLowerCase().replace(/\s/g, '_'), name: teamName },
                 Time: timeStr ? { time: timeStr } : undefined,
                 Q1: q1, Q2: q2, Q3: q3,

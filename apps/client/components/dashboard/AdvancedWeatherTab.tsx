@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import Card from '../ui/Card';
+import SectionHeader from '../ui/SectionHeader';
+import GsapFadeIn from '../ui/GsapFadeIn';
 import EmptyState from '../ui/EmptyState';
 
 interface AdvancedWeatherTabProps {
@@ -30,7 +32,7 @@ export default function AdvancedWeatherTab({ data }: AdvancedWeatherTabProps) {
   }
 
   return (
-    <div className="w-full flex flex-col items-center justify-center animate-in fade-in slide-in-from-bottom-4 duration-500 min-h-[50vh] mt-8">
+    <GsapFadeIn className="w-full flex flex-col items-center justify-center min-h-[50vh] mt-8" duration={0.5} yOffset={20}>
       
       <div className="w-full max-w-5xl flex flex-col gap-8">
         
@@ -146,6 +148,6 @@ export default function AdvancedWeatherTab({ data }: AdvancedWeatherTabProps) {
 
       </div>
 
-    </div>
+    </GsapFadeIn>
   );
 }

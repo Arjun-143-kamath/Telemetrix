@@ -9,6 +9,7 @@ import EmptyState from '../../../components/ui/EmptyState';
 import TyreBadges from '../../../components/TyreBadges';
 import AnimatedPodium from '../../../components/AnimatedPodium';
 import { formatDate } from '../../../utils/time';
+import GsapFadeIn from '../../../components/ui/GsapFadeIn';
 
 export default function RaceDetailsPage() {
   const params = useParams();
@@ -62,7 +63,7 @@ export default function RaceDetailsPage() {
   const podium = hasClassification ? currentSessionData.classification.slice(0, 3) : [];
   
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-12 px-4 sm:px-6">
+    <GsapFadeIn className="max-w-7xl mx-auto flex flex-col gap-6 pb-12 px-4 sm:px-6" duration={0.7} yOffset={30}>
       
       {/* Header */}
       <div className="flex flex-col gap-2 border-b border-border/40 pb-6">
@@ -152,7 +153,6 @@ export default function RaceDetailsPage() {
                           <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.number || row.Driver.permanentNumber}</td>
                           <td className="px-4 py-3 font-bold text-foreground">
                             {row.Driver.givenName} {row.Driver.familyName}
-                            <span className="text-xs text-muted-foreground ml-2 hidden sm:inline-block">{row.Driver.permanentNumber}</span>
                           </td>
                           <td className="px-4 py-3 text-muted-foreground">{row.Constructor.name}</td>
                           <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
@@ -172,6 +172,6 @@ export default function RaceDetailsPage() {
           </>
         )}
       </div>
-    </div>
+    </GsapFadeIn>
   );
 }

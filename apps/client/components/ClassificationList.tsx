@@ -3,6 +3,7 @@ import React from 'react';
 interface Driver {
   givenName: string;
   familyName: string;
+  permanentNumber?: string;
 }
 
 interface Constructor {
@@ -16,6 +17,7 @@ interface Time {
 
 interface ClassificationResult {
   position: string;
+  number?: string;
   Driver: Driver;
   Constructor: Constructor;
   Time?: Time;
@@ -93,17 +95,14 @@ export default function ClassificationList({ results, date, sessionType }: Class
                 {posBadge}
               </div>
 
-              {/* Number (Using constructor ID first char + random or actual number if available in API) */}
-              {/* Note: the scraper doesn't fetch driver number currently, so I'll just use a placeholder or derived number for aesthetics */}
+              {/* Number */}
               <div className="w-8 text-center text-[10px] text-muted-foreground font-medium">
-                 {/* As a placeholder for now since we don't have driver numbers in the ClassificationResult interface */}
-                 {result.position}
+                 {result.number || result.Driver?.permanentNumber || '-'}
               </div>
 
               {/* Driver */}
               <div className="flex-1 min-w-0 flex items-baseline gap-2">
                  <span className="text-sm font-bold text-gray-200 truncate">{result.Driver.givenName} {result.Driver.familyName}</span>
-                 <span className="text-[9px] text-muted-foreground">{result.position}</span>
               </div>
               
               {/* Constructor */}

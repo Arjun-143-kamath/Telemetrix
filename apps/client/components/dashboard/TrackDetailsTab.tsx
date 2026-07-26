@@ -4,6 +4,7 @@ import React from 'react';
 import Card from '../ui/Card';
 import SectionHeader from '../ui/SectionHeader';
 import DataField from '../ui/DataField';
+import GsapFadeIn from '../ui/GsapFadeIn';
 import TrackLayoutWidget from '../TrackLayoutWidget';
 import TyreBadges from '../TyreBadges';
 
@@ -22,7 +23,7 @@ export default function TrackDetailsTab({ data }: TrackDetailsTabProps) {
   };
 
   return (
-    <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
+    <GsapFadeIn className="w-full" duration={0.5} yOffset={20}>
       <div className="flex flex-col lg:flex-row items-stretch justify-between w-full min-h-[60vh] gap-8 lg:gap-4 mt-8">
         
         {/* Left Side: Stats */}
@@ -71,6 +72,6 @@ export default function TrackDetailsTab({ data }: TrackDetailsTabProps) {
         </div>
 
       </div>
-    </div>
+    </GsapFadeIn>
   );
 }
