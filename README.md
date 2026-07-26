@@ -10,7 +10,7 @@ Designed with a premium, dynamic UI featuring glassmorphism, micro-animations, a
 - **Dynamic Track Maps**: View official track layouts perfectly scaled and styled for the upcoming Grand Prix.
 - **Circuit Records**: Automatically calculated historical records for each circuit, including Fastest Lap, Most Wins, and Most Poles by legendary drivers.
 - **Live Conditions & Tyres**: Real-time track temperature and rain risk pulled straight from the sessions, alongside the designated tyre compounds for the weekend.
-- **Smart Data Scraping & Aggregation**: Combines data from multiple APIs (OpenF1, Jolpica) and web scrapers to provide a comprehensive, 100% data-driven experience with zero hardcoded values.
+- **Smart Data Scraping & Aggregation**: Combines data from multiple APIs (OpenF1, Jolpica) and custom web scrapers (for tyre compounds, driver numbers, and Driver of the Day) to provide a comprehensive, 100% data-driven experience with zero hardcoded values.
 - **Blazing Fast Caching**: Features a robust in-memory caching layer (`node-cache`) on the backend to prevent rate-limiting and ensure lightning-fast page loads.
 
 ## 🛠️ Tech Stack
@@ -19,7 +19,8 @@ Telemetrix is built as a monorepo utilizing **Turborepo** for optimized build pe
 
 ### Frontend (`apps/client`)
 - **Framework**: [Next.js](https://nextjs.org/) (React)
-- **Styling**: Tailwind CSS with custom aesthetic tokens, dark mode gradients, and dynamic layout constraints.
+- **Styling & UI**: Tailwind CSS for a cohesive dark-mode design system utilizing reusable `<Card>` and `<DataField>` components.
+- **Animations**: Fully powered by **GSAP** (`@gsap/react`) for silky-smooth, hardware-accelerated entrance staggers, spring physics, and layout transitions.
 - **Architecture**: A fully data-driven dashboard consuming aggregated backend APIs.
 
 ### Backend (`apps/server`)
