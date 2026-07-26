@@ -54,3 +54,73 @@ To run Telemetrix locally, ensure you have Node.js and a package manager (npm, y
 - `apps/client/`: The Next.js frontend application.
 - `apps/server/`: The Express backend application acting as an API aggregator and caching layer.
 - `packages/`: Shared configurations (TypeScript, ESLint, UI stubs) across the monorepo.
+
+### File Structure
+
+```text
+.
+├── apps
+│   ├── client
+│   │   ├── app
+│   │   │   ├── api
+│   │   │   ├── calendar
+│   │   │   │   ├── [round]
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── dashboard
+│   │   │   │   └── page.tsx
+│   │   │   ├── news
+│   │   │   │   └── page.tsx
+│   │   │   ├── standings
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   ├── loading.tsx
+│   │   │   └── page.tsx
+│   │   ├── components
+│   │   │   ├── dashboard
+│   │   │   │   ├── AdvancedWeatherTab.tsx
+│   │   │   │   ├── DashboardTabs.tsx
+│   │   │   │   ├── LiveSessionsTab.tsx
+│   │   │   │   ├── SessionResultsTab.tsx
+│   │   │   │   └── TrackDetailsTab.tsx
+│   │   │   ├── ui
+│   │   │   │   ├── Card.tsx
+│   │   │   │   ├── DataField.tsx
+│   │   │   │   ├── EmptyState.tsx
+│   │   │   │   ├── GsapFadeIn.tsx
+│   │   │   │   ├── SectionHeader.tsx
+│   │   │   │   └── Tabs.tsx
+│   │   │   ├── AnimatedPodium.tsx
+│   │   │   ├── ClassificationList.tsx
+│   │   │   ├── CompactPodium.tsx
+│   │   │   ├── PointsChart.tsx
+│   │   │   ├── RaceFactsWidget.tsx
+│   │   │   ├── SessionTracker.tsx
+│   │   │   ├── TrackLayoutWidget.tsx
+│   │   │   └── TyreBadges.tsx
+│   │   ├── public
+│   │   │   ├── logos
+│   │   │   └── tracks
+│   │   └── tailwind.config.ts
+│   └── server
+│       ├── scripts
+│       │   └── scrape-maps.ts
+│       └── src
+│           ├── Scrappers
+│           │   ├── f1.scraper.ts
+│           │   ├── news.scraper.ts
+│           │   └── wiki.scraper.ts
+│           ├── controllers
+│           ├── models
+│           ├── routes
+│           └── services
+│               ├── cache.service.ts
+│               ├── ergast.service.ts
+│               ├── f1.scraper.ts
+│               ├── openf1.service.ts
+│               └── weather.service.ts
+└── packages
+    ├── eslint-config
+    ├── typescript-config
+    └── ui
+```
