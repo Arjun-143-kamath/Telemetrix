@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { withCache } from './cache.service';
 
 interface F1Driver {
   givenName: string;
@@ -51,36 +52,38 @@ const getHtmlText = (html: string): string[] => {
 };
 
 const getRaceUrlPrefix = async (season: string, round: string): Promise<string | null> => {
-    try {
-        const res = await axios.get(`https://www.formula1.com/en/results.html/${season}/races.html`, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-            }
-        });
-        
-        const texts = getHtmlText(res.data);
-        
-        const raceUrls: string[] = [];
-        for (let i = 0; i < texts.length; i++) {
-            if ((texts[i] || "").startsWith('HREF=') && (texts[i] || "").endsWith('/race-result')) {
-                const url = (texts[i] || "").replace('HREF=', '');
-                if (!raceUrls.includes(url)) {
-                    raceUrls.push(url);
+    return withCache(`f1com_race_prefix_${season}_${round}`, async () => {
+        try {
+            const res = await axios.get(`https://www.formula1.com/en/results.html/${season}/races.html`, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                }
+            });
+            
+            const texts = getHtmlText(res.data);
+            
+            const raceUrls: string[] = [];
+            for (let i = 0; i < texts.length; i++) {
+                if ((texts[i] || "").startsWith('HREF=') && (texts[i] || "").endsWith('/race-result')) {
+                    const url = (texts[i] || "").replace('HREF=', '');
+                    if (!raceUrls.includes(url)) {
+                        raceUrls.push(url);
+                    }
                 }
             }
-        }
-        
-        const roundNum = parseInt(round);
-        if (!isNaN(roundNum) && roundNum >= 1 && roundNum <= raceUrls.length) {
-            const fullUrl = raceUrls[roundNum - 1]; 
-            return (fullUrl || "").split('/race-result')[0] || null;
-        }
+            
+            const roundNum = parseInt(round);
+            if (!isNaN(roundNum) && roundNum >= 1 && roundNum <= raceUrls.length) {
+                const fullUrl = raceUrls[roundNum - 1]; 
+                return (fullUrl || "").split('/race-result')[0] || null;
+            }
 
-        return null;
-    } catch (e) {
-        console.error('Error fetching F1.com race index:', e);
-        return null;
-    }
+            return null;
+        } catch (e) {
+            console.error('Error fetching F1.com race index:', e);
+            return null;
+        }
+    }, 3600 * 24 * 7); // Cache for 7 days
 }
 
 export const getF1SessionResults = async (season: string, round: string, session: 'practice-1' | 'practice-2' | 'practice-3' | 'qualifying' | 'race-result'): Promise<F1ClassificationResult[] | null> => {

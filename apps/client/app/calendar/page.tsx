@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 
 async function getCalendarData() {
   try {
-    const res = await fetch('http://localhost:5000/api/calendar', {
+    const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${url}/calendar`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');

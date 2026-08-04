@@ -19,7 +19,8 @@ export const metadata: Metadata = {
 
 async function getDashboardData() {
   try {
-    const res = await fetch('http://localhost:5000/api/dashboard?v=3', {
+    const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${url}/dashboard?v=3`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
@@ -32,7 +33,8 @@ async function getDashboardData() {
 
 async function getNewsData() {
   try {
-    const res = await fetch('http://localhost:5000/api/news', {
+    const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${url}/news`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch news');
