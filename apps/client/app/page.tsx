@@ -121,27 +121,41 @@ export default async function Home() {
 
   const shortName = nextRace?.Circuit?.Location?.country ? nextRace.Circuit.Location.country.toUpperCase() : 'SEASON OVER';
 
-  const sessionList = ['FirstPractice', 'Qualifying', 'Race'].map(sessionKey => {
-    let dateStr = sessionKey === 'Race' ? nextRace?.date : nextRace?.[sessionKey]?.date;
-    let timeStr = sessionKey === 'Race' ? nextRace?.time : nextRace?.[sessionKey]?.time;
-    
-    const labels = { FirstPractice: 'FP1', Qualifying: 'QUAL', Race: 'RACE' };
-    const openf1Map = { FirstPractice: 'Practice 1', Qualifying: 'Qualifying', Race: 'Race' };
-    
-    let openF1EndTimeStr = undefined;
-    if (openf1Sessions) {
-      const f1Session = openf1Sessions.find((s: any) => s.session_name === openf1Map[sessionKey as keyof typeof openf1Map]);
-      if (f1Session?.date_end) openF1EndTimeStr = f1Session.date_end;
-    }
+  const possibleSessions = [
+    { key: 'FirstPractice', label: 'FP1', openf1: 'Practice 1' },
+    { key: 'SecondPractice', label: 'FP2', openf1: 'Practice 2' },
+    { key: 'ThirdPractice', label: 'FP3', openf1: 'Practice 3' },
+    { key: 'SprintQualifying', label: 'SQ', openf1: 'Sprint Shootout' },
+    { key: 'Sprint', label: 'SPRINT', openf1: 'Sprint' },
+    { key: 'Qualifying', label: 'QUAL', openf1: 'Qualifying' },
+    { key: 'Race', label: 'RACE', openf1: 'Race' }
+  ];
 
-    return {
-      name: sessionKey,
-      label: labels[sessionKey as keyof typeof labels],
-      dateStr,
-      timeStr,
-      openF1EndTimeStr
-    };
-  });
+  const sessionList = possibleSessions
+    .filter(session => session.key === 'Race' || (nextRace && nextRace[session.key]))
+    .map(session => {
+      const sessionKey = session.key;
+      let dateStr = sessionKey === 'Race' ? nextRace?.date : nextRace?.[sessionKey]?.date;
+      let timeStr = sessionKey === 'Race' ? nextRace?.time : nextRace?.[sessionKey]?.time;
+      
+      let openF1EndTimeStr = undefined;
+      if (openf1Sessions) {
+        // Simple fuzzy match for Sprint Qualifying/Shootout naming variations
+        const f1Session = openf1Sessions.find((s: any) => 
+          s.session_name === session.openf1 || 
+          (session.key === 'SprintQualifying' && s.session_name.includes('Sprint'))
+        );
+        if (f1Session?.date_end) openF1EndTimeStr = f1Session.date_end;
+      }
+
+      return {
+        name: sessionKey,
+        label: session.label,
+        dateStr,
+        timeStr,
+        openF1EndTimeStr
+      };
+    });
 
   return (
     <GsapFadeIn className="w-full flex flex-col" duration={0.7} yOffset={30}>

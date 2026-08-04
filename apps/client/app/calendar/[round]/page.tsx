@@ -4,8 +4,9 @@ import Link from 'next/link';
 import { formatDate } from '../../../utils/time';
 import GsapFadeIn from '../../../components/ui/GsapFadeIn';
 
-export async function generateMetadata({ params }: { params: { round: string } }): Promise<Metadata> {
-  return { title: `Race Details | Round ${params.round}` };
+export async function generateMetadata({ params }: { params: Promise<{ round: string }> }): Promise<Metadata> {
+  const resolvedParams = await params;
+  return { title: `Race Details | Round ${resolvedParams.round}` };
 }
 
 async function getRaceData(round: string) {
@@ -15,10 +16,11 @@ async function getRaceData(round: string) {
   return res.json();
 }
 
-export default async function RaceDetailsPage({ params }: { params: { round: string } }) {
+export default async function RaceDetailsPage({ params }: { params: Promise<{ round: string }> }) {
+  const resolvedParams = await params;
   let data;
   try {
-     data = await getRaceData(params.round);
+     data = await getRaceData(resolvedParams.round);
   } catch(e) {
      return <div className="p-8 text-center text-destructive">Failed to load race details.</div>;
   }

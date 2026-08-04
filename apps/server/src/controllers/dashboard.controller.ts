@@ -79,7 +79,7 @@ export const getDashboard = async (req: Request, res: Response) => {
         }
       }
 
-      return {
+      const payload = {
         nextRace,
         lastRace,
         lastRacePodium,
@@ -94,6 +94,12 @@ export const getDashboard = async (req: Request, res: Response) => {
         nextRaceResults,
         nextRaceQualifying
       };
+
+      if (!nextRace && !lastRace) {
+        throw new Error('Core API data is missing. Jolpica API might be down or timing out.');
+      }
+
+      return payload;
     }, 60);
 
     res.setHeader('Cache-Control', 'no-store, max-age=0');
