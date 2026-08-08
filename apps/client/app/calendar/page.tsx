@@ -86,11 +86,11 @@ export default async function CalendarPage() {
                      {isCompleted && <span className="bg-secondary text-muted-foreground text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">Finished</span>}
                    </div>
                    
-                   <h2 className="text-3xl font-black uppercase tracking-tight text-foreground mb-1">{race.Circuit.Location.country}</h2>
+                   <h2 className="text-3xl font-black uppercase tracking-tight text-foreground mb-1">{race.Circuit?.Location?.country || 'N/A'}</h2>
                    <h3 className="text-xl font-bold leading-tight text-muted-foreground mb-3">{race.raceName}</h3>
                    <p className="text-sm font-medium text-muted-foreground mb-6 flex items-center gap-2">
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground/60"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-                      {race.Circuit.circuitName}
+                      {race.Circuit?.circuitName || 'N/A'}
                    </p>
 
                    <div className="flex flex-wrap items-center gap-6 pt-6 border-t border-border/10">
@@ -117,8 +117,8 @@ export default async function CalendarPage() {
                  {/* Right Side: Track Layout Image */}
                  <div className="w-full md:w-[35%] h-48 md:h-auto min-h-[160px] rounded-2xl flex items-center justify-center bg-black/20 p-4 relative overflow-hidden z-10 mt-6 md:mt-0">
                     <Image 
-                      src={`/tracks/${race.Circuit.circuitId}.png`} 
-                      alt={`${race.Circuit.circuitName} Layout`} 
+                      src={`/tracks/${race.Circuit?.circuitId || 'default'}.png`} 
+                      alt={`${race.Circuit?.circuitName || 'Unknown'} Layout`} 
                       fill
                       sizes="(max-width: 768px) 100vw, 33vw"
                       className="object-contain filter drop-shadow-[0_0_15px_rgba(255,255,255,0.05)] p-6 group-hover:scale-105 transition-transform duration-500"

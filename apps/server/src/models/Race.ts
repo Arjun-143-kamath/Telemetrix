@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 
 const raceSchema = new mongoose.Schema({
   season: { type: String, required: true },
-  round: { type: String, required: true },
+  round: { type: Number, required: true },
   raceName: { type: String, required: true },
   date: { type: String, required: true },
   time: { type: String },

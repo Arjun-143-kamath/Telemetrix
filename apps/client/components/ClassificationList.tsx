@@ -102,13 +102,13 @@ export default function ClassificationList({ results, date, sessionType }: Class
 
               {/* Driver */}
               <div className="flex-1 min-w-0 flex items-baseline gap-2">
-                 <span className="text-sm font-bold text-gray-200 truncate">{result.Driver.givenName} {result.Driver.familyName}</span>
+                 <span className="text-sm font-bold text-gray-200 truncate">{result.Driver?.givenName || 'N/A'} {result.Driver?.familyName || 'N/A'}</span>
               </div>
               
               {/* Constructor */}
               <div className="w-1/4">
                  <span className="text-xs font-medium text-muted-foreground tracking-wider truncate block">
-                   {result.Constructor.name}
+                   {result.Constructor?.name || 'N/A'}
                  </span>
               </div>
 

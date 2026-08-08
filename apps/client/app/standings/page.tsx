@@ -13,7 +13,8 @@ export const metadata: Metadata = {
 
 async function getStandingsData() {
   try {
-    const res = await fetch('http://localhost:5000/api/standings', {
+    const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${url}/standings`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
@@ -55,11 +56,11 @@ export default async function StandingsPage() {
            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Most Wins</h3>
            <div className="mt-4 flex items-end justify-between">
               <div>
-                <span className="text-3xl font-black">{records.mostWins?.driver?.familyName}</span>
-                <span className="block text-sm text-blue-500 font-medium">{records.mostWins?.driver?.givenName}</span>
+                <span className="text-3xl font-black">{records?.mostWins?.driver?.familyName || 'N/A'}</span>
+                <span className="block text-sm text-blue-500 font-medium">{records?.mostWins?.driver?.givenName || 'N/A'}</span>
               </div>
               <div className="text-right">
-                 <span className="text-4xl font-bold">{records.mostWins?.count}</span>
+                 <span className="text-4xl font-bold">{records?.mostWins?.count || 0}</span>
                  <span className="block text-xs text-muted-foreground">WINS</span>
               </div>
            </div>
@@ -71,11 +72,11 @@ export default async function StandingsPage() {
            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Most Pole Positions</h3>
            <div className="mt-4 flex items-end justify-between">
               <div>
-                <span className="text-3xl font-black">{records.polePositionKing?.driver?.familyName}</span>
-                <span className="block text-sm text-primary font-medium">{records.polePositionKing?.driver?.givenName}</span>
+                <span className="text-3xl font-black">{records?.polePositionKing?.driver?.familyName || 'N/A'}</span>
+                <span className="block text-sm text-primary font-medium">{records?.polePositionKing?.driver?.givenName || 'N/A'}</span>
               </div>
               <div className="text-right">
-                 <span className="text-4xl font-bold">{records.polePositionKing?.count}</span>
+                 <span className="text-4xl font-bold">{records?.polePositionKing?.count || 0}</span>
                  <span className="block text-xs text-muted-foreground">POLES</span>
               </div>
            </div>
@@ -87,11 +88,11 @@ export default async function StandingsPage() {
            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Most Podiums</h3>
            <div className="mt-4 flex items-end justify-between">
               <div>
-                <span className="text-3xl font-black">{records.podiumFinisher?.driver?.familyName}</span>
-                <span className="block text-sm text-yellow-500 font-medium">{records.podiumFinisher?.driver?.givenName}</span>
+                <span className="text-3xl font-black">{records?.podiumFinisher?.driver?.familyName || 'N/A'}</span>
+                <span className="block text-sm text-yellow-500 font-medium">{records?.podiumFinisher?.driver?.givenName || 'N/A'}</span>
               </div>
               <div className="text-right">
-                 <span className="text-4xl font-bold">{records.podiumFinisher?.count}</span>
+                 <span className="text-4xl font-bold">{records?.podiumFinisher?.count || 0}</span>
                  <span className="block text-xs text-muted-foreground">PODIUMS</span>
               </div>
            </div>
@@ -117,13 +118,13 @@ export default async function StandingsPage() {
         <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl p-6">
            <h3 className="text-lg font-semibold mb-6 uppercase tracking-widest border-b border-border/50 pb-4">Driver Standings</h3>
            <div className="space-y-2">
-             {driverStandings.map((driver: any, index: number) => (
-               <div key={driver.Driver.driverId} className="flex justify-between items-center p-3 rounded-lg hover:bg-accent/40 transition-colors border border-transparent hover:border-border/50">
+             {(driverStandings || []).map((driver: any, index: number) => (
+               <div key={driver.Driver?.driverId || index} className="flex justify-between items-center p-3 rounded-lg hover:bg-accent/40 transition-colors border border-transparent hover:border-border/50">
                  <div className="flex items-center space-x-4">
                    <span className={`text-lg font-black w-6 text-center ${index === 0 ? 'text-primary' : 'text-muted-foreground'}`}>{driver.position}</span>
                    <div>
-                     <span className="font-bold text-foreground block">{driver.Driver.givenName} {driver.Driver.familyName}</span>
-                     <span className="text-xs text-muted-foreground">{driver.Constructors[0]?.name}</span>
+                     <span className="font-bold text-foreground block">{driver.Driver?.givenName || 'N/A'} {driver.Driver?.familyName || 'N/A'}</span>
+                     <span className="text-xs text-muted-foreground">{driver.Constructors?.[0]?.name || 'N/A'}</span>
                    </div>
                  </div>
                  <div className="text-right">
@@ -139,11 +140,11 @@ export default async function StandingsPage() {
         <div className="bg-card/60 backdrop-blur-xl border border-border/60 rounded-2xl p-6 h-fit">
            <h3 className="text-lg font-semibold mb-6 uppercase tracking-widest border-b border-border/50 pb-4">Constructor Standings</h3>
            <div className="space-y-2">
-             {constructorStandings.map((team: any, index: number) => (
-               <div key={team.Constructor.constructorId} className="flex justify-between items-center p-3 rounded-lg hover:bg-accent/40 transition-colors border border-transparent hover:border-border/50">
+             {(constructorStandings || []).map((team: any, index: number) => (
+               <div key={team.Constructor?.constructorId || index} className="flex justify-between items-center p-3 rounded-lg hover:bg-accent/40 transition-colors border border-transparent hover:border-border/50">
                  <div className="flex items-center space-x-4">
                    <span className={`text-lg font-black w-6 text-center ${index === 0 ? 'text-primary' : 'text-muted-foreground'}`}>{team.position}</span>
-                   <span className="font-bold text-foreground text-lg">{team.Constructor.name}</span>
+                   <span className="font-bold text-foreground text-lg">{team.Constructor?.name || 'N/A'}</span>
                  </div>
                  <div className="text-right">
                    <span className="text-xl font-bold">{team.points}</span>

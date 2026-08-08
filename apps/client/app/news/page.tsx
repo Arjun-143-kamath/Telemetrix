@@ -11,7 +11,8 @@ export const metadata: Metadata = {
 
 async function getNews() {
   try {
-    const res = await fetch('http://localhost:5000/api/news', {
+    const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    const res = await fetch(`${url}/news`, {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch news');
@@ -73,9 +74,12 @@ export default async function NewsPage() {
                 className={`group relative overflow-hidden rounded-3xl block shadow-2xl transition-all duration-500 hover:scale-[1.02] border border-border/20 aspect-video ${spanClasses}`}
               >
                 {/* Background Image */}
-                <div 
-                  className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 group-hover:scale-110"
-                  style={{ backgroundImage: `url(${article.imageUrl})` }}
+                <Image 
+                  src={article.imageUrl}
+                  alt={article.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
 
                 {/* Bottom-up Blur Gradient Overlay */}

@@ -103,18 +103,18 @@ export default function RaceDetailsClient({ data }: { data: any }) {
                     </thead>
                     <tbody>
                       {currentSessionData.classification.map((row: any, idx: number) => (
-                        <tr key={idx} className="border-b border-border/20 hover:bg-white/5 transition-colors group">
+                        <tr key={row.Driver?.driverId || row.driver_number || idx} className="border-b border-border/20 hover:bg-white/5 transition-colors group">
                           <td className="px-4 py-3 text-center">
                             <span className={`inline-flex items-center justify-center w-6 h-6 rounded-md font-black text-xs ${idx === 0 ? 'bg-yellow-500/20 text-yellow-500' : idx === 1 ? 'bg-gray-400/20 text-gray-400' : idx === 2 ? 'bg-orange-500/20 text-orange-500' : 'text-muted-foreground'}`}>
                               {row.position || idx + 1}
                             </span>
                           </td>
-                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.number || row.Driver.permanentNumber}</td>
+                          <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.number || row.Driver?.permanentNumber || 'N/A'}</td>
                             <td className="px-4 py-3 font-bold text-foreground">
-                              {row.Driver.givenName} {row.Driver.familyName}
+                              {row.Driver?.givenName || 'N/A'} {row.Driver?.familyName || 'N/A'}
                             </td>
                             <td className="px-4 py-3 text-muted-foreground">
-                              {row.Constructor.name}
+                              {row.Constructor?.name || 'N/A'}
                             </td>
                           <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
                           {activeTab === 'race' && currentSessionData.classification.some((r: any) => r.FastestLap?.AverageSpeed?.speed) && (

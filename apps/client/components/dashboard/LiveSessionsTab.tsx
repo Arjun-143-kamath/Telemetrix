@@ -11,16 +11,17 @@ interface LiveSessionsTabProps {
 
 export default function LiveSessionsTab({ data }: LiveSessionsTabProps) {
   const { nextRace } = data;
-  const [now, setNow] = useState(new Date());
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
+    setNow(new Date()); // Set initial client-side date
     const interval = setInterval(() => {
       setNow(new Date());
     }, 1000);
     return () => clearInterval(interval);
   }, []);
 
-  if (!nextRace) return null;
+  if (!nextRace || !now) return null;
 
   // Build the list of sessions
   const sessionsList = [

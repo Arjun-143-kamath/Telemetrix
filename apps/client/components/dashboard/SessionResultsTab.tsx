@@ -18,6 +18,11 @@ export default function SessionResultsTab({ data }: SessionResultsTabProps) {
   
   // Local state for the nested session tab (FP1, FP2, FP3, Quali, Race)
   const [activeSession, setActiveSession] = useState<string>('race');
+  const [now, setNow] = useState<Date | null>(null);
+
+  React.useEffect(() => {
+    setNow(new Date());
+  }, []);
 
   if (!nextRace) return null;
 
@@ -35,9 +40,8 @@ export default function SessionResultsTab({ data }: SessionResultsTabProps) {
   const selectedSession = sessions.find(s => s.id === activeSession) || sessions[sessions.length - 1];
 
   // Helper to check if a session is in the past (roughly determining if it has data)
-  const now = new Date();
   const sessionStartTime = selectedSession ? new Date(`${selectedSession.date}T${selectedSession.time || '00:00:00Z'}`) : null;
-  const isComplete = sessionStartTime && (now.getTime() > sessionStartTime.getTime() + (2 * 3600 * 1000)); // assumes session is roughly 2h
+  const isComplete = sessionStartTime && now && (now.getTime() > sessionStartTime.getTime() + (2 * 3600 * 1000)); // assumes session is roughly 2h
 
   // Formatted date for the header
   const headerDate = nextRace.date ? new Date(nextRace.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';

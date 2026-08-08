@@ -38,7 +38,7 @@ export default async function RaceDetailsPage({ params }: { params: Promise<{ ro
         <div className="flex justify-between items-end">
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tight">{data.raceName}</h1>
-            <p className="text-xl text-muted-foreground mt-1">{data.circuit.circuitName} - {data.circuit.Location.country}</p>
+            <p className="text-xl text-muted-foreground mt-1">{data.circuit?.circuitName || 'N/A'} - {data.circuit?.Location?.country || 'N/A'}</p>
           </div>
           <div className="text-right hidden sm:block">
             <span className="text-2xl font-bold">{formatDate(data.date, data.time)}</span>

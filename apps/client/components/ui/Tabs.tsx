@@ -57,7 +57,7 @@ export default function Tabs({
   }, { dependencies: [activeTab], scope: containerRef });
 
   return (
-    <div ref={containerRef} className={containerClassName}>
+    <div ref={containerRef} className={containerClassName} role="tablist" aria-orientation="horizontal">
       <div 
         ref={indicatorRef} 
         className="absolute left-0 top-0 bg-primary rounded-full shadow-[0_0_15px_rgba(253,38,92,0.6)] z-0" 
@@ -68,6 +68,10 @@ export default function Tabs({
           key={option.id}
           ref={el => { buttonRefs.current[option.id] = el; }}
           onClick={() => onChange(option.id)}
+          role="tab"
+          aria-selected={activeTab === option.id}
+          aria-controls={`${option.id}-panel`}
+          id={`${option.id}-tab`}
           className={`relative px-4 sm:px-8 py-3 rounded-full text-xs sm:text-sm font-bold uppercase tracking-widest transition-colors whitespace-nowrap flex-1 flex justify-center ${
             activeTab === option.id
               ? 'text-white'

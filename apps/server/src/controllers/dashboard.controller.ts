@@ -1,18 +1,16 @@
 import { getDashboardWeather } from '../services/weather.service';
 import axios from 'axios';
 import { Request, Response } from 'express';
-import { Race } from '../models/Race';
 import { DashboardExtra } from '../models/DashboardExtra';
 import { openf1Axios } from '../utils/openf1Axios';
+import { getSeasonCalendar, getSeasonResults, getQualifyingResults, getCircuitStats, getPreviousFormAtCircuit } from '../services/ergast.service';
 
 export const getDashboard = async (req: Request, res: Response) => {
   try {
-    const currentYear = new Date().getFullYear().toString();
-    const races = await Race.find({ season: currentYear }).lean();
-    races.sort((a: any, b: any) => parseInt(a.round) - parseInt(b.round));
+    const races = await getSeasonCalendar();
 
     if (!races || races.length === 0) {
-      throw new Error('MongoDB has empty calendar data for dashboard');
+      return res.json({ message: 'No calendar data available' });
     }
 
     const now = new Date();
@@ -34,42 +32,67 @@ export const getDashboard = async (req: Request, res: Response) => {
 
     let lastRacePodium: any[] = [];
     let lastRaceQualifying: any = null;
+    
+    let nextRaceResults: any = nextRace;
+    let nextRaceQualifying: any = nextRace;
+
+    // Fetch season results from resilient cache
+    const [seasonResults, seasonQualy] = await Promise.all([
+      getSeasonResults(),
+      getQualifyingResults()
+    ]);
 
     if (lastRace) {
-      if (lastRace.Results) {
-        lastRacePodium = lastRace.Results.slice(0, 3);
+      const lrResults = seasonResults.find((r: any) => r.round === lastRace.round);
+      if (lrResults && lrResults.Results) {
+        lastRacePodium = lrResults.Results.slice(0, 3);
+        lastRace.Results = lrResults.Results;
       }
-      if (lastRace.QualifyingResults) {
-        lastRaceQualifying = lastRace; // The UI expects the whole race object for lastRaceQualifying sometimes, wait, no, the UI expects the QualifyingResults array or the race itself? In previous code it was `lastRaceQualifying = qualifyingResults.find(q => q.round === lastRace.round)`. That returned the race object containing QualifyingResults. So we can just use lastRace.
+      
+      const lrQualy = seasonQualy.find((r: any) => r.round === lastRace.round);
+      if (lrQualy && lrQualy.QualifyingResults) {
+        lastRaceQualifying = lrQualy;
+      }
+    }
+    
+    if (nextRace) {
+      const nrResults = seasonResults.find((r: any) => r.round === nextRace.round);
+      if (nrResults && nrResults.Results) {
+         nextRaceResults = nrResults;
+      }
+      const nrQualy = seasonQualy.find((r: any) => r.round === nextRace.round);
+      if (nrQualy && nrQualy.QualifyingResults) {
+         nextRaceQualifying = nrQualy;
       }
     }
 
     const circuitId = nextRace?.Circuit?.circuitId;
     const season = nextRace?.season;
 
-    // Fetch extras from DashboardExtra model
+    // Fetch extras from DashboardExtra model with catch to prevent crash if MongoDB is down
     const [
       fastestPitStopDoc,
-      circuitStatsDoc,
       tyresDoc,
       dotdDoc,
-      prevFormDoc,
-      trackDataDoc
+      trackDataDoc,
+      ergastCircuitStats,
+      ergastPrevForm
     ] = await Promise.all([
-      DashboardExtra.findOne({ key: 'fastest_pitstop' }).lean(),
-      circuitId ? DashboardExtra.findOne({ key: `circuit_stats_${circuitId}` }).lean() : null,
-      (season && nextRace?.round) ? DashboardExtra.findOne({ key: `tyres_${season}_${nextRace.round}` }).lean() : null,
-      (lastRace?.season && lastRace?.round) ? DashboardExtra.findOne({ key: `dotd_${lastRace.season}_${lastRace.round}` }).lean() : null,
-      (circuitId && season) ? DashboardExtra.findOne({ key: `prev_form_${circuitId}_${season}` }).lean() : null,
-      (circuitId && season) ? DashboardExtra.findOne({ key: `track_data_${circuitId}_${season}` }).lean() : null
+      DashboardExtra.findOne({ key: 'fastest_pitstop' }).lean().catch(() => null),
+      (season && nextRace?.round) ? DashboardExtra.findOne({ key: `tyres_${season}_${nextRace.round}` }).lean().catch(() => null) : null,
+      (lastRace?.season && lastRace?.round) ? DashboardExtra.findOne({ key: `dotd_${lastRace.season}_${lastRace.round}` }).lean().catch(() => null) : null,
+      (circuitId && season) ? DashboardExtra.findOne({ key: `track_data_${circuitId}_${season}` }).lean().catch(() => null) : null,
+      circuitId ? getCircuitStats(circuitId) : null,
+      (circuitId && season) ? getPreviousFormAtCircuit(circuitId, season) : null
     ]);
 
     const fastestPitStop = fastestPitStopDoc?.data || null;
-    let circuitStats = circuitStatsDoc?.data || null;
     const tyres = tyresDoc?.data || [];
     const driverOfTheDay = dotdDoc?.data || 'Info not available';
-    const previousFormAtCircuit = prevFormDoc?.data || null;
     const trackData = trackDataDoc?.data || null;
+    const previousFormAtCircuit = ergastPrevForm || null;
+    
+    let circuitStats = ergastCircuitStats || null;
 
     if (circuitStats && trackData) {
       circuitStats = { ...circuitStats, ...trackData };
@@ -77,7 +100,7 @@ export const getDashboard = async (req: Request, res: Response) => {
       circuitStats = trackData;
     }
 
-    // OpenF1 Sessions (Live fetched if needed, or we can just leave it as live)
+    // OpenF1 Sessions
     const country = nextRace?.Circuit?.Location?.country;
     let openf1Sessions = [];
     if (country && season) {
@@ -95,19 +118,19 @@ export const getDashboard = async (req: Request, res: Response) => {
       lastRacePodium,
       weather,
       fastestPitStop,
-      lastRaceQualifying: lastRace,
+      lastRaceQualifying,
       circuitStats,
       tyres,
       driverOfTheDay,
       openf1Sessions,
       previousFormAtCircuit,
-      nextRaceResults: nextRace,
-      nextRaceQualifying: nextRace
+      nextRaceResults,
+      nextRaceQualifying
     };
 
     res.json(payload);
   } catch (error) {
     console.error('Dashboard error:', error);
-    res.status(500).json({ message: 'Error fetching dashboard data from MongoDB', error });
+    res.status(500).json({ message: 'Error fetching dashboard data', error });
   }
 };

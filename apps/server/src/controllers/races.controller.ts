@@ -78,8 +78,11 @@ const fetchFastestPitstop = async (year: string | number, country: string, round
 };
 
 export const getRaceDetails = async (req: Request, res: Response) => {
-  const round = req.params.round;
+  const round = req.params.round as string;
   const year = (req.query.year as string) || new Date().getFullYear().toString();
+  
+  if (!round || !/^\d+$/.test(round)) return res.status(400).json({ error: "Invalid round parameter" });
+  if (!year || !/^\d{4}$/.test(year)) return res.status(400).json({ error: "Invalid year parameter" });
   
   try {
     const data = await withCache(`race_details_${year}_${round}`, async () => {

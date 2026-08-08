@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { withCache } from './cache.service';
+import { Race } from '../models/Race';
+import { Standing } from '../models/Standing';
 
 const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 
@@ -39,7 +41,14 @@ export const getSeasonCalendar = async () => {
       const response = await axios.get(`${JOLPICA_BASE_URL}/current.json`);
       return response.data.MRData.RaceTable.Races;
     } catch (error) {
-      console.error('Error fetching season calendar:', error);
+      console.error('Error fetching season calendar from API. Attempting MongoDB fallback:', error);
+      try {
+        const currentYear = new Date().getFullYear().toString();
+        const fallback = await Race.find({ season: currentYear }).sort({ round: 1 }).lean();
+        if (fallback && fallback.length > 0) return fallback;
+      } catch (dbError) {
+        console.error('MongoDB fallback failed:', dbError);
+      }
       return [];
     }
   }, 3600 * 24 * 7); // Cache for 7 days
@@ -54,7 +63,14 @@ export const getDriverStandings = async () => {
       const standingsList = response.data.MRData.StandingsTable.StandingsLists[0];
       return standingsList ? standingsList.DriverStandings : [];
     } catch (error) {
-      console.error('Error fetching driver standings:', error);
+      console.error('Error fetching driver standings from API. Attempting MongoDB fallback:', error);
+      try {
+        const currentYear = new Date().getFullYear().toString();
+        const fallback = await Standing.findOne({ season: currentYear, type: 'driver' }).lean();
+        if (fallback && fallback.data) return fallback.data;
+      } catch (dbError) {
+        console.error('MongoDB fallback failed:', dbError);
+      }
       return [];
     }
   }, ttl); 
@@ -68,7 +84,14 @@ export const getConstructorStandings = async () => {
       const standingsList = response.data.MRData.StandingsTable.StandingsLists[0];
       return standingsList ? standingsList.ConstructorStandings : [];
     } catch (error) {
-      console.error('Error fetching constructor standings:', error);
+      console.error('Error fetching constructor standings from API. Attempting MongoDB fallback:', error);
+      try {
+        const currentYear = new Date().getFullYear().toString();
+        const fallback = await Standing.findOne({ season: currentYear, type: 'constructor' }).lean();
+        if (fallback && fallback.data) return fallback.data;
+      } catch (dbError) {
+        console.error('MongoDB fallback failed:', dbError);
+      }
       return [];
     }
   }, ttl);
@@ -98,10 +121,18 @@ export const getSeasonResults = async () => {
           });
         }
         offset += limit;
+        if (offset < total) await new Promise(r => setTimeout(r, 200)); // Respect Jolpica rate limits
       }
       return Array.from(racesMap.values()).sort((a, b) => parseInt(a.round) - parseInt(b.round));
     } catch (error) {
-      console.error('Error fetching season results:', error);
+      console.error('Error fetching season results from API. Attempting MongoDB fallback:', error);
+      try {
+        const currentYear = new Date().getFullYear().toString();
+        const fallback = await Race.find({ season: currentYear }).sort({ round: 1 }).lean();
+        if (fallback && fallback.length > 0) return fallback;
+      } catch (dbError) {
+        console.error('MongoDB fallback failed:', dbError);
+      }
       return [];
     }
   }, ttl);
@@ -131,10 +162,18 @@ export const getQualifyingResults = async () => {
           });
         }
         offset += limit;
+        if (offset < total) await new Promise(r => setTimeout(r, 200)); // Respect Jolpica rate limits
       }
       return Array.from(qualyMap.values()).sort((a, b) => parseInt(a.round) - parseInt(b.round));
     } catch (error) {
-      console.error('Error fetching qualifying results:', error);
+      console.error('Error fetching qualifying results from API. Attempting MongoDB fallback:', error);
+      try {
+        const currentYear = new Date().getFullYear().toString();
+        const fallback = await Race.find({ season: currentYear }).sort({ round: 1 }).lean();
+        if (fallback && fallback.length > 0) return fallback;
+      } catch (dbError) {
+        console.error('MongoDB fallback failed:', dbError);
+      }
       return [];
     }
   }, ttl);
@@ -160,6 +199,7 @@ export const getCircuitStats = async (circuitId: string) => {
           });
         }
         offset += parseInt(data.limit) || limit;
+        if (offset < total) await new Promise(r => setTimeout(r, 200)); // Respect Jolpica rate limits
       }
 
       // Calculate Most Wins

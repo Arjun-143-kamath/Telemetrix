@@ -19,9 +19,11 @@ export default function RefreshButton() {
         router.refresh();
       } else {
         console.error("Failed to refresh data");
+        alert("Failed to refresh telemetry data. The server might be unreachable.");
       }
     } catch (error) {
       console.error("Error triggering sync:", error);
+      alert("Network error: Could not connect to telemetry server.");
     } finally {
       setIsRefreshing(false);
     }
@@ -31,6 +33,7 @@ export default function RefreshButton() {
     <button
       onClick={handleRefresh}
       disabled={isRefreshing}
+      aria-busy={isRefreshing}
       className={`
         flex items-center justify-center gap-2 
         px-4 py-2 rounded-full font-semibold text-sm
@@ -43,6 +46,7 @@ export default function RefreshButton() {
       `}
     >
       <svg
+        aria-hidden="true"
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
         fill="none"

@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import TrackLayoutWidget from '../components/TrackLayoutWidget';
 import SessionTracker from '../components/SessionTracker';
 import TyreBadges from '../components/TyreBadges';
@@ -25,9 +26,10 @@ async function getDashboardData() {
       next: { revalidate: 60 }
     });
     if (!res.ok) throw new Error('Failed to fetch data');
-    return res.json();
-  } catch (error) {
-    console.error('Error fetching dashboard:', error);
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    console.error('Error in getDashboardData:', e);
     return null;
   }
 }
@@ -52,8 +54,15 @@ export default async function Home() {
     getNewsData()
   ]);
 
-  if (!data) {
-    return <div className="p-8 text-center text-destructive">Failed to load dashboard data. Ensure backend is running.</div>;
+  if (!data || data.message) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[70vh] p-8 text-center space-y-6">
+        <h2 className="text-4xl font-black uppercase tracking-tighter text-destructive">Data Unavailable</h2>
+        <p className="text-muted-foreground text-lg max-w-lg">
+          {data?.message || 'Failed to load dashboard data. Ensure backend is running.'}
+        </p>
+      </div>
+    );
   }
 
   const { nextRace, lastRace, lastRacePodium, weather, fastestPitStop, lastRaceQualifying, circuitStats, tyres, driverOfTheDay, openf1Sessions } = data;
@@ -71,24 +80,24 @@ export default async function Home() {
   let prevPolePosition = 'Info not available';
   
   if (lastRace?.Results) {
-    const flResult = lastRace.Results.find((r: any) => r.FastestLap && r.FastestLap.rank === "1");
+    const flResult = lastRace.Results?.find((r: any) => r.FastestLap && r.FastestLap.rank === "1");
     if (flResult) {
-      prevFastestLapDriver = `${flResult.Driver.givenName.charAt(0)}. ${flResult.Driver.familyName}`;
-      prevFastestLapTime = flResult.FastestLap.Time.time;
+      prevFastestLapDriver = `${flResult.Driver?.givenName?.charAt(0) || 'N/A'}. ${flResult.Driver?.familyName || 'N/A'}`;
+      prevFastestLapTime = flResult.FastestLap?.Time?.time || 'N/A';
     }
   }
 
   if (lastRaceQualifying?.QualifyingResults && lastRaceQualifying.QualifyingResults.length > 0) {
     const pole = lastRaceQualifying.QualifyingResults[0];
-    prevPolePosition = `${pole.Driver.givenName.charAt(0)}. ${pole.Driver.familyName}`;
+    prevPolePosition = `${pole.Driver?.givenName?.charAt(0) || 'N/A'}. ${pole.Driver?.familyName || 'N/A'}`;
   }
 
   let fastestPitTime = fastestPitStop?.pit_duration ? `${fastestPitStop.pit_duration}s` : 'Info not available';
   let fastestPitDriver = 'Info not available';
   if (fastestPitStop && lastRace?.Results) {
-    const pitDriver = lastRace.Results.find((r: any) => r.number === fastestPitStop.driver_number.toString());
+    const pitDriver = lastRace.Results?.find((r: any) => r.number === fastestPitStop?.driver_number?.toString());
     if (pitDriver) {
-      fastestPitDriver = `${pitDriver.Driver.givenName.charAt(0)}. ${pitDriver.Driver.familyName}`;
+      fastestPitDriver = `${pitDriver.Driver?.givenName?.charAt(0) || 'N/A'}. ${pitDriver.Driver?.familyName || 'N/A'}`;
     }
   }
 
@@ -100,26 +109,8 @@ export default async function Home() {
     tyres: tyres || []
   };
 
-  let officialName = `FORMULA 1 ${nextRace?.raceName ? nextRace.raceName.toUpperCase() : 'GRAND PRIX'} 2026`;
   const year = nextRace?.season || new Date().getFullYear();
-  if (nextRace?.Circuit?.Location?.country) {
-    try {
-      const res = await fetch(`https://www.formula1.com/en/racing/${year}/${nextRace.Circuit.Location.country}.html`, { 
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        next: { revalidate: 3600 } 
-      });
-      if (res.ok) {
-        const html = await res.text();
-        const match = html.match(new RegExp(`FORMULA 1.*?${year}`, 'i'));
-        if (match && match[0]) {
-          officialName = match[0].toUpperCase();
-        }
-      }
-    } catch (e) {
-      console.error('Failed to scrape official name:', e);
-    }
-  }
-
+  const officialName = `FORMULA 1 ${nextRace?.raceName ? nextRace.raceName.toUpperCase() : 'GRAND PRIX'} ${year}`;
   const shortName = nextRace?.Circuit?.Location?.country ? nextRace.Circuit.Location.country.toUpperCase() : 'SEASON OVER';
 
   const possibleSessions = [
@@ -332,9 +323,12 @@ export default async function Home() {
                   rel="noopener noreferrer"
                   className="group relative overflow-hidden rounded-3xl block shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-1 border border-border/20 aspect-[4/5] sm:aspect-square lg:aspect-[4/5] col-span-1"
                 >
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-1000 group-hover:scale-110"
-                    style={{ backgroundImage: `url(${article.imageUrl})` }}
+                  <Image 
+                    src={article.imageUrl}
+                    alt={article.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
                   <div className="absolute inset-x-0 bottom-0 top-1/2 bg-gradient-to-t from-black via-black/80 to-transparent backdrop-blur-[2px]"></div>
                   <div className="absolute inset-x-0 bottom-0 p-5 flex flex-col justify-end">

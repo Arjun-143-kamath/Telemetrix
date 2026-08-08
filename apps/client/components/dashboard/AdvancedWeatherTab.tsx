@@ -12,10 +12,11 @@ interface AdvancedWeatherTabProps {
 
 export default function AdvancedWeatherTab({ data }: AdvancedWeatherTabProps) {
   const { weather } = data;
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const [time, setTime] = useState('');
 
   // Simulate updating the "last updated" time
   useEffect(() => {
+    setTime(new Date().toLocaleTimeString()); // Initial client-side set
     const interval = setInterval(() => {
       setTime(new Date().toLocaleTimeString());
     }, 60000); // update every minute just for UI ticking

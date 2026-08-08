@@ -3,6 +3,8 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function PointsChart({ data, drivers }: { data: any[], drivers: any[] }) {
+  if (!drivers || drivers.length === 0) return null;
+
   // Map constructor IDs to their official F1 colors
   const getConstructorColor = (constructorId?: string) => {
     const colors: Record<string, string> = {
@@ -45,12 +47,12 @@ export default function PointsChart({ data, drivers }: { data: any[], drivers: a
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: '12px' }} />
           
-          {drivers.map((driver) => (
+          {drivers.map((driver, index) => (
             <Line 
-              key={driver.Driver.driverId}
+              key={driver.Driver?.driverId || `driver-${index}`}
               type="monotone" 
-              dataKey={driver.Driver.driverId} 
-              name={driver.Driver.familyName}
+              dataKey={driver.Driver?.driverId} 
+              name={driver.Driver?.familyName || 'N/A'}
               stroke={getConstructorColor(driver.Constructors?.[0]?.constructorId)} 
               strokeWidth={3}
               dot={{ r: 4, strokeWidth: 2 }}
