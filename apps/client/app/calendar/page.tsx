@@ -6,6 +6,7 @@ import { getDaysToRace, formatDate } from '../../utils/time';
 import GsapFadeIn from '../../components/ui/GsapFadeIn';
 import Card from '../../components/ui/Card';
 import DataField from '../../components/ui/DataField';
+import RefreshButton from '@/components/RefreshButton';
 
 export const revalidate = 60; // 1 minute
 
@@ -48,6 +49,7 @@ export default async function CalendarPage() {
             <h1 className="text-3xl font-black uppercase tracking-tight">Race Calendar</h1>
             <p className="text-muted-foreground mt-1">2026 FIA Formula One World Championship</p>
          </div>
+         <RefreshButton />
       </div>
 
       <div className="flex flex-col gap-4">

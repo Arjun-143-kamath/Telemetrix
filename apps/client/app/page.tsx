@@ -9,6 +9,7 @@ import ClassificationList from '../components/ClassificationList';
 import { getDaysToRace } from '../utils/time';
 import { Metadata } from 'next';
 import GsapFadeIn from '../components/ui/GsapFadeIn';
+import RefreshButton from '@/components/RefreshButton';
 
 export const revalidate = 60; // 1 minute
 
@@ -173,9 +174,12 @@ export default async function Home() {
             
             {/* Header & Title */}
             <div>
-              <div className="flex items-center gap-3 mb-6">
-                 <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                 <span className="text-sm font-bold uppercase tracking-widest text-primary">Next Up</span>
+              <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-3">
+                   <div className="w-1.5 h-6 bg-primary rounded-full"></div>
+                   <span className="text-sm font-bold uppercase tracking-widest text-primary">Next Up</span>
+                </div>
+                <RefreshButton />
               </div>
               <h1 className="text-6xl lg:text-8xl font-black tracking-tighter uppercase mb-4 leading-none">
                 {shortName}

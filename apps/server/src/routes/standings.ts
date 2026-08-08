@@ -1,16 +1,27 @@
 import { Router } from 'express';
-import { getDriverStandings, getConstructorStandings, getSeasonResults, getQualifyingResults } from '../services/ergast.service';
+import { Standing } from '../models/Standing';
+import { Race } from '../models/Race';
 
 const router = Router();
 
 router.get('/', async (req, res) => {
   try {
-    const [driverStandings, constructorStandings, seasonResults, qualifyingResults] = await Promise.all([
-      getDriverStandings(),
-      getConstructorStandings(),
-      getSeasonResults(),
-      getQualifyingResults()
+    const currentYear = new Date().getFullYear().toString();
+    
+    const [driverDoc, constructorDoc, calendar] = await Promise.all([
+      Standing.findOne({ season: currentYear, type: 'driver' }).lean(),
+      Standing.findOne({ season: currentYear, type: 'constructor' }).lean(),
+      Race.find({ season: currentYear }).sort({ round: 1 }).lean()
     ]);
+
+    const driverStandings = driverDoc?.data || [];
+    const constructorStandings = constructorDoc?.data || [];
+    const seasonResults = calendar; // Races already contain Results
+    const qualifyingResults = calendar; // Races already contain QualifyingResults
+
+    if (!driverStandings || driverStandings.length === 0) {
+      throw new Error('MongoDB has empty standings data');
+    }
 
     // Compute achievements
     const records = {

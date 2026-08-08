@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import localFont from "next/font/local";
+import { Suspense } from "react";
+import LiveSessionIndicator from "../components/LiveSessionIndicator";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -85,11 +87,9 @@ export default function RootLayout({
 
             {/* Actions */}
             <div>
-              <button className="px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-xs md:text-sm font-medium rounded-md shadow-[0_0_15px_rgba(253,38,92,0.4)] transition-all flex items-center space-x-2">
-                <span className="w-2 h-2 rounded-full bg-white animate-pulse"></span>
-                <span className="hidden sm:inline">Live Session</span>
-                <span className="sm:hidden">Live</span>
-              </button>
+              <Suspense fallback={<div className="w-24 h-8 bg-muted rounded-md animate-pulse"></div>}>
+                <LiveSessionIndicator />
+              </Suspense>
             </div>
           </div>
         </header>

@@ -1,111 +1,113 @@
-import { getNextRace, getSeasonResults, getQualifyingResults, getCircuitStats, getPreviousFormAtCircuit } from '../services/ergast.service';
 import { getDashboardWeather } from '../services/weather.service';
 import axios from 'axios';
-import { getFastestPitStop } from '../services/openf1.service';
-import { getDriverOfTheDay, getTyreCompounds } from '../Scrappers/wiki.scraper';
 import { Request, Response } from 'express';
-import { withCache } from '../services/cache.service';
+import { Race } from '../models/Race';
+import { DashboardExtra } from '../models/DashboardExtra';
+import { openf1Axios } from '../utils/openf1Axios';
 
 export const getDashboard = async (req: Request, res: Response) => {
   try {
-    const data = await withCache('dashboard_data', async () => {
-      const results = await Promise.allSettled([
-        getNextRace(),
-        getSeasonResults(),
-        getQualifyingResults()
-      ]);
-      
-      const nextRace = results[0].status === 'fulfilled' ? results[0].value : null;
-      const seasonResults = results[1].status === 'fulfilled' ? results[1].value : [];
-      const qualifyingResults = results[2].status === 'fulfilled' ? results[2].value : [];
+    const currentYear = new Date().getFullYear().toString();
+    const races = await Race.find({ season: currentYear }).lean();
+    races.sort((a: any, b: any) => parseInt(a.round) - parseInt(b.round));
 
-      let lat, lon;
-      if (nextRace && nextRace.Circuit && nextRace.Circuit.Location) {
-        lat = parseFloat(nextRace.Circuit.Location.lat);
-        lon = parseFloat(nextRace.Circuit.Location.long);
+    if (!races || races.length === 0) {
+      throw new Error('MongoDB has empty calendar data for dashboard');
+    }
+
+    const now = new Date();
+    const nextRace = races.find((r: any) => new Date(`${r.date}T${r.time || '00:00:00Z'}`) > now) || races[races.length - 1];
+    
+    let lastRace = null;
+    const pastRaces = races.filter((r: any) => new Date(`${r.date}T${r.time || '00:00:00Z'}`) <= now);
+    if (pastRaces.length > 0) {
+      lastRace = pastRaces[pastRaces.length - 1];
+    }
+
+    let lat, lon;
+    if (nextRace && nextRace.Circuit && nextRace.Circuit.Location) {
+      lat = parseFloat(nextRace.Circuit.Location.lat);
+      lon = parseFloat(nextRace.Circuit.Location.long);
+    }
+    
+    const weather = await getDashboardWeather(lat, lon).catch(() => null);
+
+    let lastRacePodium: any[] = [];
+    let lastRaceQualifying: any = null;
+
+    if (lastRace) {
+      if (lastRace.Results) {
+        lastRacePodium = lastRace.Results.slice(0, 3);
       }
-      
-      const weather = await getDashboardWeather(lat, lon).catch(() => null);
-
-      let lastRace: any = null;
-      let lastRacePodium: any[] = [];
-      let lastRaceQualifying: any = null;
-
-      if (seasonResults.length > 0) {
-        lastRace = seasonResults[seasonResults.length - 1];
-        if (lastRace.Results) {
-          lastRacePodium = lastRace.Results.slice(0, 3);
-        }
-        
-        if (qualifyingResults.length > 0 && lastRace.round) {
-          lastRaceQualifying = qualifyingResults.find((q: any) => q.round === lastRace.round);
-        }
+      if (lastRace.QualifyingResults) {
+        lastRaceQualifying = lastRace; // The UI expects the whole race object for lastRaceQualifying sometimes, wait, no, the UI expects the QualifyingResults array or the race itself? In previous code it was `lastRaceQualifying = qualifyingResults.find(q => q.round === lastRace.round)`. That returned the race object containing QualifyingResults. So we can just use lastRace.
       }
+    }
 
-      let nextRaceResults: any = null;
-      let nextRaceQualifying: any = null;
-      
-      if (nextRace) {
-         nextRaceResults = seasonResults.find((r: any) => r.round === nextRace.round) || null;
-         nextRaceQualifying = qualifyingResults.find((q: any) => q.round === nextRace.round) || null;
+    const circuitId = nextRace?.Circuit?.circuitId;
+    const season = nextRace?.season;
+
+    // Fetch extras from DashboardExtra model
+    const [
+      fastestPitStopDoc,
+      circuitStatsDoc,
+      tyresDoc,
+      dotdDoc,
+      prevFormDoc,
+      trackDataDoc
+    ] = await Promise.all([
+      DashboardExtra.findOne({ key: 'fastest_pitstop' }).lean(),
+      circuitId ? DashboardExtra.findOne({ key: `circuit_stats_${circuitId}` }).lean() : null,
+      (season && nextRace?.round) ? DashboardExtra.findOne({ key: `tyres_${season}_${nextRace.round}` }).lean() : null,
+      (lastRace?.season && lastRace?.round) ? DashboardExtra.findOne({ key: `dotd_${lastRace.season}_${lastRace.round}` }).lean() : null,
+      (circuitId && season) ? DashboardExtra.findOne({ key: `prev_form_${circuitId}_${season}` }).lean() : null,
+      (circuitId && season) ? DashboardExtra.findOne({ key: `track_data_${circuitId}_${season}` }).lean() : null
+    ]);
+
+    const fastestPitStop = fastestPitStopDoc?.data || null;
+    let circuitStats = circuitStatsDoc?.data || null;
+    const tyres = tyresDoc?.data || [];
+    const driverOfTheDay = dotdDoc?.data || 'Info not available';
+    const previousFormAtCircuit = prevFormDoc?.data || null;
+    const trackData = trackDataDoc?.data || null;
+
+    if (circuitStats && trackData) {
+      circuitStats = { ...circuitStats, ...trackData };
+    } else if (!circuitStats && trackData) {
+      circuitStats = trackData;
+    }
+
+    // OpenF1 Sessions (Live fetched if needed, or we can just leave it as live)
+    const country = nextRace?.Circuit?.Location?.country;
+    let openf1Sessions = [];
+    if (country && season) {
+      try {
+        const resObj = await openf1Axios.get(`/sessions?year=${season}&country_name=${encodeURIComponent(country)}`);
+        openf1Sessions = resObj.data;
+      } catch (e: any) {
+        console.error('Error fetching openf1 sessions:', e.message);
       }
+    }
 
-      const circuitId = nextRace?.Circuit?.circuitId;
-      const raceName = nextRace?.raceName;
-      const season = nextRace?.season;
+    const payload = {
+      nextRace,
+      lastRace,
+      lastRacePodium,
+      weather,
+      fastestPitStop,
+      lastRaceQualifying: lastRace,
+      circuitStats,
+      tyres,
+      driverOfTheDay,
+      openf1Sessions,
+      previousFormAtCircuit,
+      nextRaceResults: nextRace,
+      nextRaceQualifying: nextRace
+    };
 
-      const extras = await Promise.allSettled([
-        getFastestPitStop(),
-        circuitId ? getCircuitStats(circuitId) : Promise.resolve(null),
-        (raceName && season) ? getTyreCompounds(raceName, season) : Promise.resolve([]),
-        lastRace ? getDriverOfTheDay(lastRace.raceName, lastRace.season) : Promise.resolve('Info not available'),
-        (circuitId && season) ? getPreviousFormAtCircuit(circuitId, season) : Promise.resolve(null)
-      ]);
-
-      const fastestPitStop = extras[0].status === 'fulfilled' ? extras[0].value : null;
-      const circuitStats = extras[1].status === 'fulfilled' ? extras[1].value : null;
-      const tyres = extras[2].status === 'fulfilled' ? extras[2].value : [];
-      const driverOfTheDay = extras[3].status === 'fulfilled' ? extras[3].value : 'Info not available';
-      const previousFormAtCircuit = extras[4].status === 'fulfilled' ? extras[4].value : null;
-
-      const country = nextRace?.Circuit?.Location?.country;
-      let openf1Sessions = [];
-      if (country && season) {
-        try {
-          const resObj = await axios.get(`https://api.openf1.org/v1/sessions?year=${season}&country_name=${encodeURIComponent(country)}`);
-          openf1Sessions = resObj.data;
-        } catch (e: any) {
-          console.error('Error fetching openf1 sessions:', e.message);
-        }
-      }
-
-      const payload = {
-        nextRace,
-        lastRace,
-        lastRacePodium,
-        weather,
-        fastestPitStop,
-        lastRaceQualifying,
-        circuitStats,
-        tyres,
-        driverOfTheDay,
-        openf1Sessions,
-        previousFormAtCircuit,
-        nextRaceResults,
-        nextRaceQualifying
-      };
-
-      if (!nextRace && !lastRace) {
-        throw new Error('Core API data is missing. Jolpica API might be down or timing out.');
-      }
-
-      return payload;
-    }, 60);
-
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
-    res.json(data);
+    res.json(payload);
   } catch (error) {
     console.error('Dashboard error:', error);
-    res.status(500).json({ message: 'Error fetching dashboard data', error });
+    res.status(500).json({ message: 'Error fetching dashboard data from MongoDB', error });
   }
 };

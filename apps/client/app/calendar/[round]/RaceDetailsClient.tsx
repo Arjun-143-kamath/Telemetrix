@@ -6,6 +6,7 @@ import Card from '../../../components/ui/Card';
 import EmptyState from '../../../components/ui/EmptyState';
 import TyreBadges from '../../../components/TyreBadges';
 import AnimatedPodium from '../../../components/AnimatedPodium';
+import RefreshButton from '@/components/RefreshButton';
 
 export default function RaceDetailsClient({ data }: { data: any }) {
   const [activeTab, setActiveTab] = useState<string>('race');
@@ -35,7 +36,9 @@ export default function RaceDetailsClient({ data }: { data: any }) {
   
   return (
     <>
-
+      <div className="flex justify-end mb-4">
+        <RefreshButton />
+      </div>
 
       {/* Tyres Allocation */}
       {data.tyres && data.tyres.length > 0 && (
@@ -107,10 +110,12 @@ export default function RaceDetailsClient({ data }: { data: any }) {
                             </span>
                           </td>
                           <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{row.number || row.Driver.permanentNumber}</td>
-                          <td className="px-4 py-3 font-bold text-foreground">
-                            {row.Driver.givenName} {row.Driver.familyName}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground">{row.Constructor.name}</td>
+                            <td className="px-4 py-3 font-bold text-foreground">
+                              {row.Driver.givenName} {row.Driver.familyName}
+                            </td>
+                            <td className="px-4 py-3 text-muted-foreground">
+                              {row.Constructor.name}
+                            </td>
                           <td className="px-4 py-3 font-mono text-xs">{row.Q3 || row.Q2 || row.Q1 || row.Time?.time || row.Time?.gap || row.status || 'N/A'}</td>
                           {activeTab === 'race' && currentSessionData.classification.some((r: any) => r.FastestLap?.AverageSpeed?.speed) && (
                             <td className="px-4 py-3 font-mono text-xs text-muted-foreground">

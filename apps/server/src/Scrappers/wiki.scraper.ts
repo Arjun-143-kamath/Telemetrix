@@ -7,35 +7,60 @@ export const getDriverOfTheDay = async (raceName: string, year: string | number)
     try {
       if (!raceName || !year) return 'Info not available';
       
-      const formattedRaceName = raceName.toLowerCase().replace(/ /g, '-').replace('grand-prix', 'grand-prix');
-      // e.g., https://www.formula1.com/en/racing/2024/Belgium.html
-      // Driver of the day is usually on a dedicated page or in the race results.
-      // Since scraping F1.com is complex and layout changes, we'll implement a basic Wikipedia scrape attempt first.
+      const yearStr = year.toString();
       
-      const wikiUrl = `https://en.wikipedia.org/wiki/${year}_${raceName.replace(/ /g, '_')}`;
-      const response = await axios.get(wikiUrl, { headers: { 'User-Agent': 'F1RaceHubBot/1.0 (https://github.com/f1racehub)' } });
-      const $ = cheerio.load(response.data);
-      
-      // Look for "Driver of the Day" in the infobox or tables
-      let dotd = 'Info not available';
-      
-      $('th').each((i, el) => {
-        const text = $(el).text().toLowerCase();
-        if (text.includes('driver of the day') || text.includes('driver of the race')) {
-           const val = $(el).next('td').text().trim();
-           if (val) {
-             // Remove references like [21]
-             dotd = val.replace(/\[\d+\]/g, '').trim();
-           }
+      // The dataset repository has inconsistent casing across years
+      const urlsToTry = [
+        `https://raw.githubusercontent.com/toUpperCase78/formula1-datasets/master/Formula1_${yearStr}Season_DriverOfTheDayVotes.csv`,
+        `https://raw.githubusercontent.com/toUpperCase78/formula1-datasets/master/Formula1_${yearStr}season_driverOfTheDayVotes.csv`
+      ];
+
+      let csvData = null;
+      for (const url of urlsToTry) {
+        try {
+          const response = await axios.get(url, { timeout: 5000 });
+          if (response.status === 200 && response.data) {
+            csvData = response.data;
+            break;
+          }
+        } catch (e) {
+          // Ignore 404s and try next URL
         }
-      });
+      }
+
+      if (!csvData) {
+        return 'Info not available';
+      }
+
+      const lines = csvData.split('\n').filter((l: string) => l.trim() !== '');
+      const headers = lines[0].split(',').map((h: string) => h.trim().toLowerCase());
       
-      return dotd;
+      const trackIndex = headers.indexOf('track');
+      const firstPlaceIndex = headers.indexOf('1st place');
+      const roundIndex = headers.indexOf('round');
+      
+      if (firstPlaceIndex === -1 || (trackIndex === -1 && roundIndex === -1)) {
+        return 'Info not available';
+      }
+
+      const normalizedSearchName = raceName.toLowerCase().replace('grand prix', '').trim();
+
+      for (let i = 1; i < lines.length; i++) {
+        // Simple CSV parse assuming no quoted commas
+        const cols = lines[i].split(',').map((c: string) => c.trim());
+        const trackVal = trackIndex !== -1 ? cols[trackIndex]?.toLowerCase() : '';
+        
+        if (trackVal && (trackVal.includes(normalizedSearchName) || normalizedSearchName.includes(trackVal))) {
+          return cols[firstPlaceIndex] || 'Info not available';
+        }
+      }
+
+      return 'Info not available';
     } catch (error) {
-      console.error(`Error scraping Driver of the Day for ${raceName} ${year}:`, error);
+      console.error(`Error fetching Driver of the Day for ${raceName} ${year}:`, error);
       return 'Info not available';
     }
-  }, 3600 * 24 * 7); // Cache for 7 days
+  }, 7200); // Cache for 2 hours (7200 seconds)
 };
 
 export const getTyreCompounds = async (raceName: string, year: string | number) => {

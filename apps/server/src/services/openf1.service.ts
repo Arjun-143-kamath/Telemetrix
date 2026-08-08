@@ -1,12 +1,10 @@
-import axios from 'axios';
 import { withCache } from './cache.service';
-
-const OPENF1_BASE_URL = 'https://api.openf1.org/v1';
+import { openf1Axios } from '../utils/openf1Axios';
 
 export const getLatestSession = async () => {
   return withCache('latest_session', async () => {
     try {
-      const response = await axios.get(`${OPENF1_BASE_URL}/sessions?session_key=latest`);
+      const response = await openf1Axios.get('/sessions?session_key=latest');
       return response.data[0] || null;
     } catch (error) {
       console.error('Error fetching latest session:', error);
@@ -18,7 +16,7 @@ export const getLatestSession = async () => {
 export const getLatestWeather = async (sessionKey: string | number = 'latest') => {
   return withCache(`weather_${sessionKey}`, async () => {
     try {
-      const response = await axios.get(`${OPENF1_BASE_URL}/weather?session_key=${sessionKey}`);
+      const response = await openf1Axios.get(`/weather?session_key=${sessionKey}`);
       if (response.data && response.data.length > 0) {
         return response.data[response.data.length - 1]; 
       }
@@ -33,7 +31,7 @@ export const getLatestWeather = async (sessionKey: string | number = 'latest') =
 export const getFastestPitStop = async (sessionKey: string | number = 'latest') => {
   return withCache(`fastest_pit_${sessionKey}`, async () => {
     try {
-      const response = await axios.get(`${OPENF1_BASE_URL}/pit?session_key=${sessionKey}`);
+      const response = await openf1Axios.get(`/pit?session_key=${sessionKey}`);
       if (response.data && response.data.length > 0) {
         const validStops = response.data.filter((p: any) => p.pit_duration != null);
         if (validStops.length > 0) {
@@ -54,11 +52,11 @@ export const getPracticeClassification = async (sessionKey: string | number) => 
   return withCache(`practice_classification_${sessionKey}`, async () => {
     try {
       // 1. Fetch all drivers for that session
-      const driversRes = await axios.get(`${OPENF1_BASE_URL}/drivers?session_key=${sessionKey}`);
+      const driversRes = await openf1Axios.get(`/drivers?session_key=${sessionKey}`);
       const drivers = driversRes.data;
       
       // 2. Fetch laps to find the fastest lap for each driver
-      const lapsRes = await axios.get(`${OPENF1_BASE_URL}/laps?session_key=${sessionKey}`);
+      const lapsRes = await openf1Axios.get(`/laps?session_key=${sessionKey}`);
       const laps = lapsRes.data;
       
       // Group by driver and find minimum lap time

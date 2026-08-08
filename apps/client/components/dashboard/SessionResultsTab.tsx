@@ -48,23 +48,26 @@ export default function SessionResultsTab({ data }: SessionResultsTabProps) {
   let showPodium = false;
   let sessionHasData = false;
 
-  if (activeSession === 'fp1' && data.fp1Results) {
+  if (activeSession === 'fp1' && Array.isArray(data.fp1Results)) {
       resultsData = data.fp1Results;
-      sessionHasData = true;
-  } else if (activeSession === 'fp2' && data.fp2Results) {
+      sessionHasData = resultsData.length > 0;
+  } else if (activeSession === 'fp2' && Array.isArray(data.fp2Results)) {
       resultsData = data.fp2Results;
-      sessionHasData = true;
-  } else if (activeSession === 'fp3' && data.fp3Results) {
+      sessionHasData = resultsData.length > 0;
+  } else if (activeSession === 'fp3' && Array.isArray(data.fp3Results)) {
       resultsData = data.fp3Results;
-      sessionHasData = true;
+      sessionHasData = resultsData.length > 0;
   } else if (activeSession === 'quali' && nextRaceQualifying) {
-      // It might be nested in QualifyingResults from Ergast, or flat array from F1.com scraper
-      resultsData = nextRaceQualifying.QualifyingResults || nextRaceQualifying;
-      sessionHasData = true;
+      resultsData = Array.isArray(nextRaceQualifying.QualifyingResults) 
+        ? nextRaceQualifying.QualifyingResults 
+        : (Array.isArray(nextRaceQualifying) ? nextRaceQualifying : []);
+      sessionHasData = resultsData.length > 0;
   } else if (activeSession === 'race' && nextRaceResults) {
-      resultsData = nextRaceResults.Results || nextRaceResults;
-      showPodium = true;
-      sessionHasData = true;
+      resultsData = Array.isArray(nextRaceResults.Results)
+        ? nextRaceResults.Results
+        : (Array.isArray(nextRaceResults) ? nextRaceResults : []);
+      showPodium = resultsData.length > 0;
+      sessionHasData = resultsData.length > 0;
   }
   
   // If the race hasn't happened but the session time passed, we might still not have data (e.g. FP1 data isn't in Ergast). 

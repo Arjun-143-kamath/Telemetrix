@@ -5,12 +5,13 @@ import { getDriverOfTheDay, getTyreCompounds } from '../Scrappers/wiki.scraper';
 import { getF1ComPracticeResults, getF1ComSprintQualifyingResults } from '../Scrappers/f1.scraper';
 import { getFastestPitStop, getPracticeClassification } from '../services/openf1.service';
 import { withCache } from '../services/cache.service';
+import { openf1Axios } from '../utils/openf1Axios';
 
 const JOLPICA_BASE_URL = 'https://api.jolpi.ca/ergast/f1';
 
 const fetchPractice = async (year: string | number, country: string, sessionName: string, sessionNumber: number) => {
   try {
-    const sessionsRes = await axios.get(`https://api.openf1.org/v1/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=${encodeURIComponent(sessionName)}`).catch(() => ({ data: [] }));
+    const sessionsRes = await openf1Axios.get(`/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=${encodeURIComponent(sessionName)}`).catch(() => ({ data: [] }));
     const session = sessionsRes.data[0];
     
     let results = [];
@@ -30,7 +31,7 @@ const fetchPractice = async (year: string | number, country: string, sessionName
 
 const fetchSprintQualifying = async (year: string | number, country: string) => {
   try {
-    const sessionsRes = await axios.get(`https://api.openf1.org/v1/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=${encodeURIComponent('Sprint Qualifying')}`).catch(() => ({ data: [] }));
+    const sessionsRes = await openf1Axios.get(`/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=${encodeURIComponent('Sprint Qualifying')}`).catch(() => ({ data: [] }));
     const session = sessionsRes.data[0];
     
     let results = [];
@@ -48,12 +49,26 @@ const fetchSprintQualifying = async (year: string | number, country: string) => 
   }
 };
 
-const fetchFastestPitstop = async (year: string | number, country: string) => {
+const fetchFastestPitstop = async (year: string | number, country: string, round: string) => {
   try {
-    const sessionsRes = await axios.get(`https://api.openf1.org/v1/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=Race`).catch(() => ({ data: [] }));
+    const sessionsRes = await openf1Axios.get(`/sessions?year=${year}&country_name=${encodeURIComponent(country)}&session_name=Race`).catch(() => ({ data: [] }));
     const session = sessionsRes.data[0];
     if (session) {
-      return await getFastestPitStop(session.session_key).catch(() => null);
+      const openf1Pit = await getFastestPitStop(session.session_key).catch(() => null);
+      if (openf1Pit) return openf1Pit;
+    }
+    
+    // Fallback to Ergast
+    const ergastRes = await axios.get(`${JOLPICA_BASE_URL}/${year}/${round}/pitstops.json?limit=100`).catch(() => ({ data: null }));
+    if (ergastRes.data?.MRData?.RaceTable?.Races?.[0]?.PitStops?.length > 0) {
+      const pitStops = ergastRes.data.MRData.RaceTable.Races[0].PitStops;
+      const fastest = pitStops.reduce((min: any, p: any) => parseFloat(p.duration) < parseFloat(min.duration) ? p : min);
+      return {
+         driver_number: fastest.driverId.replace(/_/g, ' '), 
+         pit_duration: parseFloat(fastest.duration),
+         lap_number: fastest.lap,
+         is_ergast_fallback: true
+      };
     }
     return null;
   } catch (e) {
@@ -104,7 +119,7 @@ export const getRaceDetails = async (req: Request, res: Response) => {
 
       // 3. Fetch Extras (Practices, Pitstops, Scrapers)
       const extraResults = await Promise.allSettled([
-        fetchFastestPitstop(year, country),
+        fetchFastestPitstop(year, country, round as string),
         getDriverOfTheDay(raceName, year),
         getTyreCompounds(raceName, year),
         fetchPractice(year, country, 'Practice 1', 1),

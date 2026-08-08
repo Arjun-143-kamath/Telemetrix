@@ -31,7 +31,15 @@ export default function TrackDetailsTab({ data }: TrackDetailsTabProps) {
            <Card className="gap-4">
              <SectionHeader title="Circuit Records" indicatorColor="bg-primary" />
              
-             <DataField label="Fastest Lap" value={displayCircuitStats.fastestLap} valueClassName="text-primary" />
+             {circuitStats?.lapRecord ? (
+               <>
+                 <DataField label="Lap Record" value={`${circuitStats.lapRecord.time} (${circuitStats.lapRecord.year})`} valueClassName="text-primary font-mono" />
+                 <DataField label="Record Owner" value={circuitStats.lapRecord.owner} />
+               </>
+             ) : (
+               <DataField label="Fastest Lap" value={displayCircuitStats.fastestLap} valueClassName="text-primary font-mono" />
+             )}
+             
              <DataField label="Most Wins" value={displayCircuitStats.mostWins} />
              <DataField label="Most Poles" value={displayCircuitStats.mostPoles} />
            </Card>
@@ -40,6 +48,11 @@ export default function TrackDetailsTab({ data }: TrackDetailsTabProps) {
              <SectionHeader title="Track Info" indicatorColor="bg-primary" />
              <DataField label="Location" value={`${nextRace?.Circuit?.Location?.locality}, ${nextRace?.Circuit?.Location?.country}`} />
              <DataField label="Circuit Name" value={nextRace?.Circuit?.circuitName} />
+             {circuitStats?.firstGP && <DataField label="First Grand Prix" value={circuitStats.firstGP} />}
+             {circuitStats?.turns && <DataField label="Turns" value={circuitStats.turns} />}
+             {circuitStats?.length && <DataField label="Circuit Length" value={`${circuitStats.length} km`} />}
+             {circuitStats?.laps && <DataField label="Number of Laps" value={circuitStats.laps} />}
+             {circuitStats?.distance && <DataField label="Race Distance" value={`${circuitStats.distance} km`} />}
            </Card>
         </div>
 
